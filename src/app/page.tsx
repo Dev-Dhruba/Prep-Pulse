@@ -1,9 +1,21 @@
+'use client'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Users, Settings, BarChart3 } from "lucide-react"
-import Image from "next/image"
+import Image from "next/image" 
+
+import { useEffect } from "react"
+import { checkSupabaseConnection } from "@/lib/supabaseUtils"
+
+
 
 export default function Home() {
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      checkSupabaseConnection()
+    }
+  }, [])
+
   return (
     <div className="flex flex-col min-h-screen text-black">
       {/* Hero Section */}
