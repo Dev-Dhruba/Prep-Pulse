@@ -5,7 +5,7 @@ import { ArrowRight, Users, Settings, BarChart3 } from "lucide-react"
 import Image from "next/image" 
 
 import { useEffect } from "react"
-import { checkSupabaseConnection } from "@/lib/supabaseUtils"
+import { checkSupabaseConnection } from "@/lib/supabase/Utils"
 
 
 
