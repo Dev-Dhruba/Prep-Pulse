@@ -8,9 +8,11 @@ import { User } from '@supabase/supabase-js'
 type UserContextType = {
   user: User | null
   isLoading: boolean
-  profile: any // Replace with your profile type
+  profile: ProfileType | null
   refresh: () => Promise<void>
 }
+
+type ProfileType = unknown
 
 const UserContext = createContext<UserContextType>({
   user: null,
@@ -21,7 +23,7 @@ const UserContext = createContext<UserContextType>({
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [profile, setProfile] = useState<any>(null)
+  const [profile, setProfile] = useState<ProfileType | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
 
@@ -53,7 +55,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     fetchUser()
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async () => {
         fetchUser()
       }
     )
