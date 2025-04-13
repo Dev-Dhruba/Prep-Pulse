@@ -10,7 +10,7 @@ import { checkSupabaseConnection } from "@/lib/supabase/Utils"
 
 
 export default function Home() {
-  const { user, loading } =useAuth()
+  const { user } =useAuth()
   console.log(user)
 
   useEffect(() => {
