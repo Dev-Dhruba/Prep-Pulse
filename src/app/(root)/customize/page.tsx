@@ -15,34 +15,59 @@ export default function CustomizePage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8 text-center">Customize Your Interview</h1>
+      <h1 className="text-3xl font-bold mb-8 text-center cosmic-gradient-text">Customize Your Interview</h1>
 
       <Tabs defaultValue="general" className="w-full max-w-4xl mx-auto">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="general">General Settings</TabsTrigger>
-          <TabsTrigger value="questions">Questions</TabsTrigger>
-          <TabsTrigger value="avatar">Avatar</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 bg-cosmic-dark border border-cosmic-blue/20">
+          <TabsTrigger
+            value="general"
+            className="data-[state=active]:bg-cosmic-blue/20 data-[state=active]:text-cosmic-blue"
+          >
+            General Settings
+          </TabsTrigger>
+          <TabsTrigger
+            value="questions"
+            className="data-[state=active]:bg-cosmic-purple/20 data-[state=active]:text-cosmic-purple"
+          >
+            Questions
+          </TabsTrigger>
+          <TabsTrigger
+            value="avatar"
+            className="data-[state=active]:bg-cosmic-cyan/20 data-[state=active]:text-cosmic-cyan"
+          >
+            Avatar
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
-          <Card>
+          <Card className="cosmic-card backdrop-blur-sm">
             <CardHeader>
-              <CardTitle>General Settings</CardTitle>
-              <CardDescription>Configure the basic parameters of your interview session.</CardDescription>
+              <CardTitle className="text-cosmic-blue">General Settings</CardTitle>
+              <CardDescription className="text-gray-400">
+                Configure the basic parameters of your interview session.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="position">Position/Role</Label>
-                <Input id="position" placeholder="e.g. Frontend Developer" />
+                <Label htmlFor="position" className="text-gray-300">
+                  Position/Role
+                </Label>
+                <Input
+                  id="position"
+                  placeholder="e.g. Frontend Developer"
+                  className="bg-cosmic-darker border-cosmic-blue/20"
+                />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="industry">Industry</Label>
+                <Label htmlFor="industry" className="text-gray-300">
+                  Industry
+                </Label>
                 <Select>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-cosmic-darker border-cosmic-blue/20">
                     <SelectValue placeholder="Select industry" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-cosmic-dark border-cosmic-blue/20">
                     <SelectItem value="tech">Technology</SelectItem>
                     <SelectItem value="finance">Finance</SelectItem>
                     <SelectItem value="healthcare">Healthcare</SelectItem>
@@ -53,7 +78,7 @@ export default function CustomizePage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Interview Difficulty</Label>
+                <Label className="text-gray-300">Interview Difficulty</Label>
                 <div className="pt-2">
                   <Slider
                     value={[difficulty]}
@@ -61,8 +86,9 @@ export default function CustomizePage() {
                     max={100}
                     step={1}
                     onValueChange={(value) => setDifficulty(value[0])}
+                    className="[&>span]:bg-cosmic-blue"
                   />
-                  <div className="flex justify-between mt-1 text-sm text-gray-500">
+                  <div className="flex justify-between mt-1 text-sm text-gray-400">
                     <span>Beginner</span>
                     <span>Intermediate</span>
                     <span>Expert</span>
@@ -71,12 +97,12 @@ export default function CustomizePage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Interview Duration</Label>
+                <Label className="text-gray-300">Interview Duration</Label>
                 <Select defaultValue="30">
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-cosmic-darker border-cosmic-blue/20">
                     <SelectValue placeholder="Select duration" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-cosmic-dark border-cosmic-blue/20">
                     <SelectItem value="15">15 minutes</SelectItem>
                     <SelectItem value="30">30 minutes</SelectItem>
                     <SelectItem value="45">45 minutes</SelectItem>
@@ -86,66 +112,107 @@ export default function CustomizePage() {
               </div>
 
               <div className="flex items-center justify-between">
-                <Label htmlFor="feedback">Real-time Feedback</Label>
-                <Switch id="feedback" />
+                <Label htmlFor="feedback" className="text-gray-300">
+                  Real-time Feedback
+                </Label>
+                <Switch id="feedback" className="bg-cosmic-darker data-[state=checked]:bg-cosmic-blue" />
               </div>
 
               <div className="flex items-center justify-between">
-                <Label htmlFor="recording">Record Session</Label>
-                <Switch id="recording" defaultChecked />
+                <Label htmlFor="recording" className="text-gray-300">
+                  Record Session
+                </Label>
+                <Switch
+                  id="recording"
+                  defaultChecked
+                  className="bg-cosmic-darker data-[state=checked]:bg-cosmic-blue"
+                />
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="questions">
-          <Card>
+          <Card className="cosmic-card backdrop-blur-sm">
             <CardHeader>
-              <CardTitle>Interview Questions</CardTitle>
-              <CardDescription>Customize the questions that will be asked during your interview.</CardDescription>
+              <CardTitle className="text-cosmic-purple">Interview Questions</CardTitle>
+              <CardDescription className="text-gray-400">
+                Customize the questions that will be asked during your interview.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label>Question Categories</Label>
+                <Label className="text-gray-300">Question Categories</Label>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="flex items-center space-x-2">
-                    <Switch id="technical" defaultChecked />
-                    <Label htmlFor="technical">Technical Skills</Label>
+                    <Switch
+                      id="technical"
+                      defaultChecked
+                      className="bg-cosmic-darker data-[state=checked]:bg-cosmic-purple"
+                    />
+                    <Label htmlFor="technical" className="text-gray-300">
+                      Technical Skills
+                    </Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Switch id="behavioral" defaultChecked />
-                    <Label htmlFor="behavioral">Behavioral</Label>
+                    <Switch
+                      id="behavioral"
+                      defaultChecked
+                      className="bg-cosmic-darker data-[state=checked]:bg-cosmic-purple"
+                    />
+                    <Label htmlFor="behavioral" className="text-gray-300">
+                      Behavioral
+                    </Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Switch id="situational" defaultChecked />
-                    <Label htmlFor="situational">Situational</Label>
+                    <Switch
+                      id="situational"
+                      defaultChecked
+                      className="bg-cosmic-darker data-[state=checked]:bg-cosmic-purple"
+                    />
+                    <Label htmlFor="situational" className="text-gray-300">
+                      Situational
+                    </Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Switch id="background" defaultChecked />
-                    <Label htmlFor="background">Background</Label>
+                    <Switch
+                      id="background"
+                      defaultChecked
+                      className="bg-cosmic-darker data-[state=checked]:bg-cosmic-purple"
+                    />
+                    <Label htmlFor="background" className="text-gray-300">
+                      Background
+                    </Label>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label>Custom Questions</Label>
+                <Label className="text-gray-300">Custom Questions</Label>
                 <div className="space-y-2">
-                  <Input placeholder="Enter a custom question..." />
-                  <Button variant="outline" size="sm" className="w-full">
+                  <Input
+                    placeholder="Enter a custom question..."
+                    className="bg-cosmic-darker border-cosmic-purple/20"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full border-cosmic-purple text-cosmic-purple hover:bg-cosmic-purple/10"
+                  >
                     Add Question
                   </Button>
                 </div>
 
                 <div className="mt-4 space-y-2">
-                  <div className="p-2 bg-gray-100 rounded-md flex justify-between items-center">
-                    <span>Tell me about a challenging project you worked on.</span>
-                    <Button variant="ghost" size="sm">
+                  <div className="p-2 bg-cosmic-darker rounded-md flex justify-between items-center border border-cosmic-purple/20">
+                    <span className="text-gray-300">Tell me about a challenging project you worked on.</span>
+                    <Button variant="ghost" size="sm" className="text-cosmic-purple hover:bg-cosmic-purple/10">
                       Remove
                     </Button>
                   </div>
-                  <div className="p-2 bg-gray-100 rounded-md flex justify-between items-center">
-                    <span>How do you handle tight deadlines?</span>
-                    <Button variant="ghost" size="sm">
+                  <div className="p-2 bg-cosmic-darker rounded-md flex justify-between items-center border border-cosmic-purple/20">
+                    <span className="text-gray-300">How do you handle tight deadlines?</span>
+                    <Button variant="ghost" size="sm" className="text-cosmic-purple hover:bg-cosmic-purple/10">
                       Remove
                     </Button>
                   </div>
@@ -156,37 +223,45 @@ export default function CustomizePage() {
         </TabsContent>
 
         <TabsContent value="avatar">
-          <Card>
+          <Card className="cosmic-card backdrop-blur-sm">
             <CardHeader>
-              <CardTitle>Avatar Customization</CardTitle>
-              <CardDescription>Customize the appearance and behavior of your AI interviewer.</CardDescription>
+              <CardTitle className="text-cosmic-cyan">Avatar Customization</CardTitle>
+              <CardDescription className="text-gray-400">
+                Customize the appearance and behavior of your AI interviewer.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label>Avatar Style</Label>
+                <Label className="text-gray-300">Avatar Style</Label>
                 <div className="grid grid-cols-3 gap-4 pt-2">
-                  <div className="border rounded-md p-2 cursor-pointer hover:border-black">
-                    <div className="aspect-square bg-gray-200 rounded-md mb-2"></div>
-                    <p className="text-center text-sm">Professional</p>
+                  <div className="border border-cosmic-cyan/20 rounded-md p-2 cursor-pointer hover:border-cosmic-cyan bg-cosmic-darker">
+                    <div className="aspect-square bg-cosmic-dark rounded-md mb-2 flex items-center justify-center">
+                      <div className="w-16 h-16 rounded-full cosmic-gradient-bg"></div>
+                    </div>
+                    <p className="text-center text-sm text-gray-300">Professional</p>
                   </div>
-                  <div className="border rounded-md p-2 cursor-pointer hover:border-black">
-                    <div className="aspect-square bg-gray-200 rounded-md mb-2"></div>
-                    <p className="text-center text-sm">Casual</p>
+                  <div className="border border-cosmic-cyan/20 rounded-md p-2 cursor-pointer hover:border-cosmic-cyan bg-cosmic-darker">
+                    <div className="aspect-square bg-cosmic-dark rounded-md mb-2 flex items-center justify-center">
+                      <div className="w-16 h-16 rounded-full cosmic-gradient-bg opacity-70"></div>
+                    </div>
+                    <p className="text-center text-sm text-gray-300">Casual</p>
                   </div>
-                  <div className="border rounded-md p-2 cursor-pointer hover:border-black">
-                    <div className="aspect-square bg-gray-200 rounded-md mb-2"></div>
-                    <p className="text-center text-sm">Friendly</p>
+                  <div className="border border-cosmic-cyan/20 rounded-md p-2 cursor-pointer hover:border-cosmic-cyan bg-cosmic-darker">
+                    <div className="aspect-square bg-cosmic-dark rounded-md mb-2 flex items-center justify-center">
+                      <div className="w-16 h-16 rounded-full cosmic-gradient-bg opacity-40"></div>
+                    </div>
+                    <p className="text-center text-sm text-gray-300">Friendly</p>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label>Voice Type</Label>
+                <Label className="text-gray-300">Voice Type</Label>
                 <Select defaultValue="neutral">
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-cosmic-darker border-cosmic-cyan/20">
                     <SelectValue placeholder="Select voice type" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-cosmic-dark border-cosmic-cyan/20">
                     <SelectItem value="neutral">Neutral</SelectItem>
                     <SelectItem value="friendly">Friendly</SelectItem>
                     <SelectItem value="professional">Professional</SelectItem>
@@ -196,9 +271,9 @@ export default function CustomizePage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Speaking Rate</Label>
-                <Slider defaultValue={[50]} min={0} max={100} step={1} />
-                <div className="flex justify-between mt-1 text-sm text-gray-500">
+                <Label className="text-gray-300">Speaking Rate</Label>
+                <Slider defaultValue={[50]} min={0} max={100} step={1} className="[&>span]:bg-cosmic-cyan" />
+                <div className="flex justify-between mt-1 text-sm text-gray-400">
                   <span>Slow</span>
                   <span>Normal</span>
                   <span>Fast</span>
@@ -206,8 +281,14 @@ export default function CustomizePage() {
               </div>
 
               <div className="flex items-center justify-between">
-                <Label htmlFor="expressions">Facial Expressions</Label>
-                <Switch id="expressions" defaultChecked />
+                <Label htmlFor="expressions" className="text-gray-300">
+                  Facial Expressions
+                </Label>
+                <Switch
+                  id="expressions"
+                  defaultChecked
+                  className="bg-cosmic-darker data-[state=checked]:bg-cosmic-cyan"
+                />
               </div>
             </CardContent>
           </Card>
@@ -215,7 +296,7 @@ export default function CustomizePage() {
       </Tabs>
 
       <div className="flex justify-center mt-8">
-        <Button size="lg" className="bg-black text-white hover:bg-gray-800">
+        <Button size="lg" className="cosmic-button rounded-full">
           Save Settings & Start Interview
         </Button>
       </div>

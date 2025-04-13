@@ -1,3 +1,73 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-cosmic-darker text-white;
+  }
+}
+
+@layer components {
+  .cosmic-card {
+    @apply bg-cosmic-dark border border-cosmic-blue/20 shadow-[0_0_15px_rgba(59,158,255,0.1)];
+  }
+
+  .cosmic-gradient-text {
+    @apply text-transparent bg-gradient-to-r from-cosmic-blue to-cosmic-purple bg-clip-text;
+  }
+
+  .cosmic-button {
+    @apply bg-gradient-to-r from-cosmic-blue to-cosmic-purple text-white hover:opacity-90 transition-opacity;
+  }
+
+  .star-bg {
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+    background-size: 30px 30px;
+  }
+
+  .cosmic-glow {
+    @apply relative;
+  }
+
+  .cosmic-glow::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: 0 0 20px rgba(59, 158, 255, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+  }
+
+  .cosmic-glow:hover::after {
+    opacity: 1;
+  }
+
+  .cosmic-gradient-bg {
+    @apply bg-gradient-to-r from-cosmic-blue to-cosmic-purple;
+  }
+
+  .cosmic-radial-bg {
+    background: radial-gradient(circle, rgba(59, 158, 255, 0.15) 0%, rgba(151, 71, 255, 0.15) 100%);
+  }
+}
+
+@layer utilities {
+  .animation-delay-300 {
+    animation-delay: 300ms;
+  }
+
+  .animation-delay-500 {
+    animation-delay: 500ms;
+  }
+
+  .animation-delay-700 {
+    animation-delay: 700ms;
+  }
+
+  .animation-delay-1000 {
+    animation-delay: 1000ms;
+  }
+}
