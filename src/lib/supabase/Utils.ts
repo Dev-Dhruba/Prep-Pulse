@@ -1,4 +1,4 @@
-import { supabase } from './Client'
+import { supabase } from './supabase-client'
 
 export async function checkSupabaseConnection(): Promise<boolean> {
   const { error } = await supabase.from('users').select('*').limit(1)
