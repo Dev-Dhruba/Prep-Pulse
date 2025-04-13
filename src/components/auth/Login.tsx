@@ -5,9 +5,10 @@ import { signup } from "@/utils/functions/signup";
 import { OauthSignin } from "@/utils/functions/signin-oauth";
 
 export default function LoginPage() {
+
   const handleGoogleSignup = async () => {
     console.log("Google signup clicked");
-    const { data, error } = await OauthSignin("google");
+    const { error } = await OauthSignin("google");
   
     if (error) {
       console.error("Google signup failed:", error.message);
@@ -16,8 +17,12 @@ export default function LoginPage() {
   
 
   const handleGithubSignup = async () => {
-    // TODO: Add your GitHub OAuth logic here
-    console.log("GitHub signup clicked");
+    console.log("Google signup clicked");
+    const { error } = await OauthSignin("github");
+  
+    if (error) {
+      console.error("Google signup failed:", error.message);
+    }
   };
 
   return (
