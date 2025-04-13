@@ -4,11 +4,15 @@ import { Button } from "@/components/ui/button"
 import { ArrowRight, Users, Settings, BarChart3 } from "lucide-react"
 import Image from "next/image" 
 import { useEffect } from "react"
+import { useAuth } from "@/utils/contexts/UserProvider"
 import { checkSupabaseConnection } from "@/lib/supabase/Utils"
 
 
 
 export default function Home() {
+  const { user, loading } =useAuth()
+  console.log(user)
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       checkSupabaseConnection()
@@ -18,6 +22,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen text-black">
       {/* Hero Section */}
+      {user && <p className="bg-white text-red-900">{`Hello ${user.email || 'User'}`}</p>}
       <main className="flex-1">
         <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-b from-white to-gray-100">
           <div className="container px-4 md:px-6">

@@ -2,11 +2,26 @@
 import React from "react";
 import { signin } from "@/utils/functions/signin";
 import { signup } from "@/utils/functions/signup";
+import { OauthSignin } from "@/utils/functions/signin-oauth";
 
 export default function LoginPage() {
+  const handleGoogleSignup = async () => {
+    console.log("Google signup clicked");
+    const { data, error } = await OauthSignin("google");
+  
+    if (error) {
+      console.error("Google signup failed:", error.message);
+    }
+  };
+  
+
+  const handleGithubSignup = async () => {
+    // TODO: Add your GitHub OAuth logic here
+    console.log("GitHub signup clicked");
+  };
+
   return (
     <div className="flex min-h-screen w-screen items-center justify-center bg-gray-900 p-6">
-      
       <div className="relative w-full max-w-md p-8 bg-gray-800 rounded-xl shadow-xl">
         <h2 className="mb-8 text-center text-3xl font-bold text-white">
           Welcome Back
@@ -53,6 +68,23 @@ export default function LoginPage() {
             </button>
           </div>
         </form>
+
+        <div className="mt-8 space-y-4">
+          <button
+            onClick={handleGoogleSignup}
+            className="w-full flex items-center justify-center rounded-lg border border-gray-600 bg-white px-6 py-3 font-medium text-black hover:bg-gray-200"
+          >
+            {/* <img src="/google-icon.svg" alt="Google" className="mr-3 h-5 w-5" /> */}
+            Sign up with Google
+          </button>
+          <button
+            onClick={handleGithubSignup}
+            className="w-full flex items-center justify-center rounded-lg border border-gray-600 bg-gray-900 px-6 py-3 font-medium text-white hover:bg-gray-700"
+          >
+            {/* <img src="/github-icon.svg" alt="GitHub" className="mr-3 h-5 w-5" /> */}
+            Sign up with GitHub
+          </button>
+        </div>
       </div>
     </div>
   );
