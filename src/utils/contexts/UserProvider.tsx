@@ -1,75 +1,54 @@
-// context/user-context.tsx
-'use client'
+"use client"
 
-import { createContext, useContext, useEffect, useState } from 'react'
-import { supabase } from "@/lib/supabase/supabase-client"
+import { createContext, useContext, useEffect, useState } from "react"
+import { supabase } from "@/lib/supabase/supabase-browserclient"
 import { User } from '@supabase/supabase-js'
 
-type UserContextType = {
-  user: User | null
-  isLoading: boolean
-  profile: ProfileType | null
-  refresh: () => Promise<void>
+interface AuthContextType {
+  user: User | null;
+  loading: boolean;
 }
 
-type ProfileType = unknown
+const AuthContext = createContext<AuthContextType | null>(null);
 
-const UserContext = createContext<UserContextType>({
-  user: null,
-  isLoading: true,
-  profile: null,
-  refresh: async () => {}
-})
+import { ReactNode } from "react";
 
-export function UserProvider({ children }: { children: React.ReactNode }) {
+export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
-  const [profile, setProfile] = useState<ProfileType | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-
-
-  const fetchUser = async () => {
-    setIsLoading(true)
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-
-      if (user) {
-        const { data: profileData } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', user.id)
-          .single()
-        
-        setProfile(profileData)
-      } else {
-        setProfile(null)
-      }
-    } catch (error) {
-      console.error('Error fetching user:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchUser()
+    const getUser = async () => {
+      const { data, error } = await supabase.auth.getUser()
+      if (error) console.error("Error fetching user:", error)
+      else setUser(data?.user)
+      setLoading(false)
+    }
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async () => {
-        fetchUser()
-      }
-    )
+    getUser()
+
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null)
+    })
 
     return () => {
-      authListener.subscription.unsubscribe()
+      subscription.unsubscribe()
     }
   }, [])
 
   return (
-    <UserContext.Provider value={{ user, isLoading, profile, refresh: fetchUser }}>
+    <AuthContext.Provider value={{ user, loading }}>
       {children}
-    </UserContext.Provider>
+    </AuthContext.Provider>
   )
 }
 
-export const useUser = () => useContext(UserContext)
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext)
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider")
+  }
+  return context
+}
