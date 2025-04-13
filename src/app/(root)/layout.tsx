@@ -3,6 +3,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import Navbar from "@/components/navbar"
+import { UserProvider } from "@/utils/contexts/UserProvider"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -21,8 +22,10 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark">
           <div className="star-bg min-h-screen">
+            <UserProvider>
             <Navbar />
             {children}
+            </UserProvider>
           </div>
         </ThemeProvider>
       </body>

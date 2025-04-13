@@ -1,14 +1,14 @@
+'use client'
 import { ArrowRight, Users, BarChart3, Settings } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
-import { ArrowRight, Users, Settings, BarChart3 } from "lucide-react"
-import Image from "next/image" 
 import { useEffect } from "react"
 import { useAuth } from "@/utils/contexts/UserProvider"
 import { checkSupabaseConnection } from "@/lib/supabase/Utils"
 
 export default function Home() {
+
   const { user } =useAuth()
   console.log(user)
 
@@ -17,8 +17,6 @@ export default function Home() {
       checkSupabaseConnection()
     }
   }, [])
-
-export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
