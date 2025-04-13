@@ -44,7 +44,9 @@ export default function LoginPage() {
               Log in
             </button>
             <button
-              formAction={signup}
+              formAction={async (formData) => {
+                await signup(formData);
+              }}
               className="w-full rounded-lg border border-gray-600 bg-gray-700 px-6 py-3 font-medium text-blue-400 hover:bg-gray-600"
             >
               Sign up
