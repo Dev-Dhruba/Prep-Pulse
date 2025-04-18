@@ -36,7 +36,7 @@ export default function Navbar() {
             <div className="absolute -inset-1 rounded-full cosmic-gradient-bg opacity-0 blur-md group-hover:opacity-70 transition-opacity duration-300"></div>
             <Star className="h-5 w-5 text-cosmic-blue relative" />
           </div>
-          <span className="text-xl font-bold cosmic-gradient-text">MockInterview AI</span>
+          <span className="text-xl font-bold cosmic-gradient-text">Prep Pulse</span>
         </Link>
 
         <nav className="ml-auto hidden gap-8 md:flex">
