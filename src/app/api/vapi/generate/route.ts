@@ -41,8 +41,6 @@ export async function POST(request: Request) {
       .from("interviews")
       .insert([interview]);
 
-      console.log("here")
-
     if (error) {
       console.error("Error inserting interview:", error);
     } else {
