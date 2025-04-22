@@ -2,10 +2,11 @@
 
 import React, { Suspense, useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { useGLTF, useTexture,  Environment, useFBX, useAnimations } from '@react-three/drei';
+import { useGLTF, useTexture, Environment, useFBX, useAnimations } from '@react-three/drei';
 import { MeshStandardMaterial, LineBasicMaterial, MeshPhysicalMaterial, Vector2, LinearSRGBColorSpace, SRGBColorSpace, Mesh, SkinnedMesh, LineSegments } from 'three';
 import * as THREE from 'three';
 import _ from 'lodash';
+import blinkData from './blendDataBlink.json';
 
 interface AvatarProps {
   avatar_url: string;
@@ -14,9 +15,70 @@ interface AvatarProps {
   text?: string;
   setAudioSource?: (source: string | null) => void;
   playing?: boolean;
+  isLargeScreen?: boolean;
+  currentViseme?: number | null;
+  visemeData?: { id: number; offset: number }[];
 }
 
-function Avatar({ avatar_url, speak, setSpeak, text, setAudioSource, playing }: AvatarProps) {
+// Interface for blink data
+interface BlinkFrame {
+  time: number;
+  blendshapes: {
+    eyeBlinkLeft: number;
+    eyeBlinkRight: number;
+    mouthSmileLeft: number;
+    mouthSmileRight: number;
+  };
+}
+
+// Map Azure viseme IDs to morph target names in the 3D model
+// Adjust these to match your model's actual morph target names
+const visemeMap = {
+  0: null, // silence
+  1: ["mouthClose", "mouthPucker"], // p, b, m
+  2: ["mouthLowerDown", "jawForward"], // f, v
+  3: ["tongueOut"], // th
+  4: ["mouthClose", "tongueUp"], // t, d
+  5: ["jawOpen", "tongueUp"], // k, g
+  6: ["mouthPucker", "jawForward"], // ch, j, sh
+  7: ["mouthNarrow", "mouthLowerDown"], // s, z
+  8: ["mouthNarrow", "tongueUp"], // n, l
+  9: ["mouthNarrow", "jawOpen"], // r
+  10: ["jawOpen"], // a
+  11: ["mouthSmile", "jawOpen"], // e
+  12: ["mouthNarrow", "jawOpen"], // i
+  13: ["mouthRound", "jawOpen"], // o
+  14: ["mouthPucker", "jawOpen"], // u
+  15: ["jawOpen"], // default for special cases
+  20: ["mouthPucker"], // touch edges of lips
+  21: ["tongueUp"], // tongue behind top teeth
+};
+
+// Mapping between common viseme names and specific model's morph target names
+const morphTargetNameMap = {
+  "mouthClose": ["mouthClose", "viseme_PP"],
+  "mouthPucker": ["mouthPucker", "viseme_OO", "viseme_ou"],
+  "mouthLowerDown": ["mouthLowerDown", "viseme_FF"],
+  "jawForward": ["jawForward"],
+  "tongueOut": ["tongueOut", "viseme_TH"],
+  "tongueUp": ["tongueUp", "viseme_DD"],
+  "jawOpen": ["jawOpen", "viseme_aa", "viseme_oh"],
+  "mouthNarrow": ["mouthNarrow", "viseme_RR", "viseme_SS"],
+  "mouthRound": ["mouthRound", "viseme_oh"],
+  "mouthSmile": ["mouthSmile", "viseme_E", "viseme_ih"]
+};
+
+function Avatar({ 
+  avatar_url, 
+  speak, 
+  setSpeak, 
+  text, 
+  setAudioSource, 
+  playing, 
+  isLargeScreen,
+  currentViseme,
+  visemeData
+}: AvatarProps) {
   let gltf = useGLTF(avatar_url);
   const [morphTargetDictionaryBody, setMorphTargetDictionaryBody] = useState<Record<string, number> | null>(null);
   const [morphTargetDictionaryLowerTeeth, setMorphTargetDictionaryLowerTeeth] = useState<Record<string, number> | null>(null);
@@ -26,6 +88,22 @@ function Avatar({ avatar_url, speak, setSpeak, text, setAudioSource, playing }: 
   const streamRef = useRef(null);
   const mixer = useMemo(() => new THREE.AnimationMixer(gltf.scene), []);
   
+  // Blink related refs and states
+  const blinkTimeRef = useRef(0);
+  const blinkCycleRef = useRef(0);
+  const cycleTimeRef = useRef(0);
+  const [lastBlinkTime, setLastBlinkTime] = useState(0);
+  const [isBlinking, setIsBlinking] = useState(false);
+  const blinkDataRef = useRef<BlinkFrame[]>(blinkData);
+  
+  // References to track mesh objects that need blendshapes applied
+  const eyeBlinkLeftRef = useRef<SkinnedMesh | null>(null);
+  const eyeBlinkRightRef = useRef<SkinnedMesh | null>(null);
+  const mouthRef = useRef<SkinnedMesh | null>(null);
+  
+  // Keep track of all available morph targets/blend shapes
+  const [allMorphTargets, setAllMorphTargets] = useState<{[key: string]: {mesh: SkinnedMesh, index: number}}>({}); 
+
   // Move hooks to component level
   const idleFbx = useFBX('/idle.fbx');
   const { clips: idleClips } = useAnimations(idleFbx.animations);
@@ -86,7 +164,29 @@ function Avatar({ avatar_url, speak, setSpeak, text, setAudioSource, playing }: 
   teethNormalTexture.colorSpace = LinearSRGBColorSpace;
   hairNormalTexture.colorSpace = LinearSRGBColorSpace;
   
+  // Add a state to track viewport width
+  const [viewportWidth, setViewportWidth] = useState(0);
+  
+  // Update viewport width on component mount and window resize
   useEffect(() => {
+    const updateViewportWidth = () => {
+      setViewportWidth(window.innerWidth);
+    };
+    
+    // Set initial width
+    updateViewportWidth();
+    
+    // Add event listener for window resize
+    window.addEventListener('resize', updateViewportWidth);
+    
+    // Clean up
+    return () => window.removeEventListener('resize', updateViewportWidth);
+  }, []);
+
+  // Initialize 3D model and materials
+  useEffect(() => {
+    const morphTargetsFound: {[key: string]: {mesh: SkinnedMesh, index: number}} = {};
+
     gltf.scene.traverse((node) => {
       if (node instanceof Mesh || node instanceof SkinnedMesh || node instanceof LineSegments) {
         node.castShadow = true;
@@ -107,6 +207,29 @@ function Avatar({ avatar_url, speak, setSpeak, text, setAudioSource, playing }: 
 
           if (node instanceof SkinnedMesh && node.morphTargetDictionary) {
             setMorphTargetDictionaryBody(node.morphTargetDictionary);
+            
+            // Store references to nodes with blendshapes for eyes
+            if (node.morphTargetDictionary["eyeBlink_L"] !== undefined) {
+              eyeBlinkLeftRef.current = node;
+              // console.log("Found left eye blink node:", node.name);
+            }
+            if (node.morphTargetDictionary["eyeBlink_R"] !== undefined) {
+              eyeBlinkRightRef.current = node;
+              // console.log("Found right eye blink node:", node.name);
+            }
+            
+            // Find all morph targets/blendshapes for facial expressions
+            if (node.morphTargetDictionary && node.morphTargetInfluences) {
+              mouthRef.current = node; // Store a reference to the main head/face mesh
+              
+              // Log all available blend shapes
+              // console.log("Available blend shapes in", node.name, ":", Object.keys(node.morphTargetDictionary));
+              
+              // Store all morph targets for easy access later
+              for (const [name, index] of Object.entries(node.morphTargetDictionary)) {
+                morphTargetsFound[name] = { mesh: node, index };
+              }
+            }
           }
         }
 
@@ -133,6 +256,12 @@ function Avatar({ avatar_url, speak, setSpeak, text, setAudioSource, playing }: 
           node.material.map = teethTexture;
           node.material.normalMap = teethNormalTexture;
           node.material.envMapIntensity = 0.7;
+          
+          if (node instanceof SkinnedMesh && node.morphTargetDictionary) {
+            for (const [name, index] of Object.entries(node.morphTargetDictionary)) {
+              morphTargetsFound[name] = { mesh: node, index };
+            }
+          }
         }
 
         if (node.name.includes("Hair")) {
@@ -164,6 +293,9 @@ function Avatar({ avatar_url, speak, setSpeak, text, setAudioSource, playing }: 
         }
       }
     });
+    
+    setAllMorphTargets(morphTargetsFound);
+    // console.log("All morph targets:", Object.keys(morphTargetsFound));
   }, [gltf.scene]);
 
   // Handle playing animation clips
@@ -178,6 +310,15 @@ function Avatar({ avatar_url, speak, setSpeak, text, setAudioSource, playing }: 
       }
     });
   }, [clips, mixer]);
+
+  // Log available morph targets for debugging
+  useEffect(() => {
+    gltf.scene.traverse((node) => {
+      if (node instanceof SkinnedMesh && node.morphTargetDictionary) {
+        // console.log(`Node: ${node.name}, Morph Targets:`, node.morphTargetDictionary);
+      }
+    });
+  }, [gltf.scene]);
 
   // Handle idle animation
   useEffect(() => {
@@ -217,18 +358,166 @@ function Avatar({ avatar_url, speak, setSpeak, text, setAudioSource, playing }: 
     });
   }, [playing, clips, mixer]);
 
+  // Function to check if it's time to blink
+  const shouldBlink = () => {
+    // Random blink timing, more human-like
+    const now = Date.now() / 1000; // Convert to seconds
+    const timeSinceLastBlink = now - lastBlinkTime;
+    
+    // Humans blink every 2-10 seconds on average
+    const nextBlinkTime = speak ? 2 : 1; // Blink less often when speaking
+    
+    return timeSinceLastBlink > nextBlinkTime;
+  };
+
+  // Apply viseme to the morph targets
+  const applyViseme = useCallback((visemeId: number | null) => {
+    if (visemeId === null || !mouthRef.current || !allMorphTargets) return;
+    
+    // Reset all mouth-related morph targets first
+    Object.entries(allMorphTargets).forEach(([name, { mesh, index }]) => {
+      if (name.toLowerCase().includes('mouth') || 
+          name.toLowerCase().includes('jaw') || 
+          name.toLowerCase().includes('tongue') ||
+          name.toLowerCase().includes('viseme')) {
+        if (mesh.morphTargetInfluences) {
+          mesh.morphTargetInfluences[index] = 0;
+        }
+      }
+    });
+    
+    // Get the viseme target names from the mapping
+    const targetVisemes = visemeMap[visemeId as keyof typeof visemeMap];
+    if (!targetVisemes) return;
+    
+    // Apply the new viseme
+    targetVisemes.forEach(targetName => {
+      // Get model-specific morph target names
+      const modelTargetNames = morphTargetNameMap[targetName as keyof typeof morphTargetNameMap] || [targetName];
+      
+      modelTargetNames.forEach(morphName => {
+        const morphTarget = Object.entries(allMorphTargets).find(([name]) => 
+          name.toLowerCase() === morphName.toLowerCase()
+        );
+        
+        if (morphTarget) {
+          const [_, { mesh, index }] = morphTarget;
+          if (mesh.morphTargetInfluences) {
+            mesh.morphTargetInfluences[index] = 1.0; // Set to full influence
+            // console.log(`Applied viseme ${visemeId} to morph target ${morphName}`);
+          }
+        } else {
+          // Try applying based on name pattern matching
+          Object.entries(allMorphTargets).forEach(([name, { mesh, index }]) => {
+            if (name.toLowerCase().includes(morphName.toLowerCase())) {
+              if (mesh.morphTargetInfluences) {
+                mesh.morphTargetInfluences[index] = 1.0;
+                // console.log(`Applied viseme ${visemeId} to similar morph target ${name}`);
+              }
+            }
+          });
+        }
+      });
+    });
+    
+  }, [allMorphTargets]);
+
+  // Update when current viseme changes
+  useEffect(() => {
+    if (speak) {
+      applyViseme(currentViseme!);
+    } else {
+      // Reset all mouth morphs when not speaking
+      Object.entries(allMorphTargets).forEach(([name, { mesh, index }]) => {
+        if (name.toLowerCase().includes('mouth') || 
+            name.toLowerCase().includes('jaw') || 
+            name.toLowerCase().includes('tongue') ||
+            name.toLowerCase().includes('viseme')) {
+          if (mesh.morphTargetInfluences) {
+            mesh.morphTargetInfluences[index] = 0;
+          }
+        }
+      });
+    }
+  }, [speak, currentViseme, applyViseme, allMorphTargets]);
+
+  // Handle blinking animation using the frame data
   useFrame((state, delta) => {
     mixer.update(delta);
+  
+    // Check if a blink should be triggered
+    if (!isBlinking && shouldBlink()) {
+      setIsBlinking(true);
+      setLastBlinkTime(Date.now() / 1000); // Update last blink time
+      blinkTimeRef.current = 0;
+    }
+  
+    if (isBlinking) {
+      // Increment blink time
+      blinkTimeRef.current += delta;
+      const blinkDuration = 0.3; // Total duration of blink animation
+      let blinkAmount = 0;
+  
+      if (blinkTimeRef.current <= blinkDuration / 2) {
+        // Eyes closing
+        blinkAmount = blinkTimeRef.current / (blinkDuration / 2);
+      } else {
+        // Eyes opening
+        blinkAmount = 1 - (blinkTimeRef.current - blinkDuration / 2) / (blinkDuration / 2);
+      }
+  
+      // Apply blink amount to the morph targets
+      Object.entries(allMorphTargets).forEach(([name, { mesh, index }]) => {
+        if (name.includes('eyeBlink') || name.includes('EyeBlink')) {
+          if (mesh.morphTargetInfluences) {
+            mesh.morphTargetInfluences[index] = blinkAmount;
+          }
+        }
+      });
+  
+      // End the blink cycle
+      if (blinkTimeRef.current >= blinkDuration) {
+        setIsBlinking(false);
+        blinkTimeRef.current = 0;
+  
+        // Reset blink influences to 0
+        Object.entries(allMorphTargets).forEach(([name, { mesh, index }]) => {
+          if (name.includes('eyeBlink') || name.includes('EyeBlink')) {
+            if (mesh.morphTargetInfluences) {
+              mesh.morphTargetInfluences[index] = 0;
+            }
+          }
+        });
+      }
+    }
   });
+
+  // Calculate scale based on viewport width
+  const avatarScale = useMemo(() => {
+    // Default scale for small screens
+    let scale = 1.5;
+    
+    // Larger scale for screens > 681px
+    if (viewportWidth > 681) {
+      scale = 2.2;
+    }
+    
+    // Even larger for bigger screens
+    if (viewportWidth > 1024) {
+      scale = 2.5;
+    }
+    
+    return scale;
+  }, [viewportWidth]);
 
   // Return the scene as a primitive element with proper positioning
   return gltf.scene ? (
     <>
       <primitive 
         object={gltf.scene} 
-        position={[0, -0.7, 0]} // Lowered position to bring face to camera level
-        rotation={[0.1, 0, 0]} // Slight forward tilt to face the camera better
-        scale={1.0} // Adjusted scale for proper framing
+        position={[0, -0.15, 0]}
+        rotation={[0.1, 0.1, 0]}
+        scale={1.0}
       />
     </>
   ) : null;

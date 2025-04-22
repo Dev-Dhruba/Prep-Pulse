@@ -1,13 +1,25 @@
 "use client";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState, Suspense } from "react";
+import React, { useEffect, useState, Suspense, useRef } from "react";
 import { vapi } from "@/lib/vapi.sdk";
 import { cn } from "@/lib/utils";
 import Avatar from "./avatar";
 import Candidate from "./candidate";
 import * as sdk from "microsoft-cognitiveservices-speech-sdk"; // Import Azure SDK
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
+import * as THREE from "three";
+
+// Camera control component to look at the model's face
+function CameraController() {
+  
+  useFrame(({ camera }) => {
+    // Make the camera look at the face position
+    camera.lookAt(new THREE.Vector3(0, 1.4, 0));
+  });
+  
+  return null;
+}
 
 enum CallStatus {
   INACTIVE = "INACTIVE",
@@ -21,14 +33,87 @@ interface SavedMessage {
   content: string;
 }
 
+// Function to map letters to viseme IDs
+const getVisemeIdForLetter = (letter: string): number => {
+  // Convert letter to lowercase for consistent mapping
+  const lowerLetter = letter.toLowerCase();
+  
+  // Viseme mapping based on common phonetic mouth shapes
+  // These mappings are approximate and may need adjustment based on your model
+  const visemeMap: { [key: string]: number } = {
+    'a': 1,  // Ah sound (open mouth)
+    'b': 2,  // B, M, P (closed lips)
+    'c': 3,  // CH, J, SH (pursed lips)
+    'd': 4,  // D, L, N, T (tongue at teeth/alveolar ridge)
+    'e': 5,  // EE sound (smile shape)
+    'f': 6,  // F, V (bottom lip touching upper teeth)
+    'g': 7,  // G, K (back of mouth closure)
+    'h': 1,  // H (slight opening)
+    'i': 5,  // I (similar to E, slightly more closed)
+    'j': 3,  // Similar to CH
+    'k': 7,  // Similar to G
+    'l': 4,  // Similar to D
+    'm': 2,  // Similar to B
+    'n': 4,  // Similar to D
+    'o': 8,  // O sound (rounded lips)
+    'p': 2,  // Similar to B
+    'q': 7,  // Similar to K sound
+    'r': 9,  // R (slight rounding)
+    's': 10, // S, Z (teeth exposure)
+    't': 4,  // Similar to D
+    'u': 8,  // Similar to O
+    'v': 6,  // Similar to F
+    'w': 8,  // W (rounded lips)
+    'x': 10, // Similar to S at start
+    'y': 5,  // Y (similar to long E)
+    'z': 10, // Similar to S
+    ' ': 0,  // Neutral position for space
+    '.': 0,  // Neutral for punctuation
+    ',': 0,  // Neutral for punctuation
+    '?': 0,  // Neutral for punctuation
+    '!': 0,  // Neutral for punctuation
+  };
+  
+  // Return the viseme ID or default to neutral (0) if not found
+  return visemeMap[lowerLetter] || 0;
+};
+
+// Function to generate viseme data from text
+const generateVisemeDataFromText = (text: string): { id: number; offset: number }[] => {
+  const visemeData: { id: number; offset: number }[] = [];
+  
+  // Set base time per character (milliseconds)
+  const msPerChar = 80;
+  
+  console.log("Generating viseme data for text:", text);
+  
+  // Generate viseme data for each character
+  for (let i = 0; i < text.length; i++) {
+    const letter = text[i];
+    const visemeId = getVisemeIdForLetter(letter);
+    
+    console.log(`Letter: '${letter}' => Viseme ID: ${visemeId}`);
+    
+    visemeData.push({
+      id: visemeId,
+      // Convert to 100-nanosecond units as used by Azure Speech SDK
+      offset: i * msPerChar * 10000
+    });
+  }
+  
+  return visemeData;
+};
+
 const Agent = ({ userName, userId, type }: AgentProps) => {
   const router = useRouter();
-  const [, setIsSpeaking] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const [callStatus, setCallStatus] = useState<CallStatus>(CallStatus.INACTIVE);
   const [messages, setMessages] = useState<SavedMessage[]>([]);
   const [visemeData, setVisemeData] = useState<
     { id: number; offset: number }[]
   >([]);
+  const [currentViseme, setCurrentViseme] = useState<number | null>(null);
+  const synthesisStartTimeRef = useRef<number | null>(null);
 
   useEffect(() => {
     const onCallStart = () => {
@@ -53,15 +138,22 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
               sdk.SpeechSynthesisOutputFormat.Riff16Khz16BitMonoPcm; // Or another suitable audio format
 
             const synthesizer = new sdk.SpeechSynthesizer(speechConfig, null);
+            
+            // Generate viseme data from text before starting speech synthesis
+            const generatedVisemeData = generateVisemeDataFromText(textToAnalyze);
+            setVisemeData(generatedVisemeData);
+            synthesisStartTimeRef.current = Date.now();
 
+            // Still use Azure's viseme events if available
             synthesizer.visemeReceived = (s, e) => {
               console.log(
-                `Viseme Received: Id=${e.visemeId} AudioOffset=${e.audioOffset}`
+                `Azure Viseme Received: Id=${e.visemeId} AudioOffset=${e.audioOffset}`
               );
-              setVisemeData((prev) => [...prev, { id: e.visemeId, offset: e.audioOffset }]);
-              // Here you would integrate with your 3D model animation
-              // You can use the 'visemeData' state to drive the lip sync
+              // We're now using our generated visemes, but logging Azure's for reference
+              setCurrentViseme(e.visemeId);
             };
+
+            setIsSpeaking(true);
 
             await new Promise((resolve, reject) => {
               synthesizer.speakTextAsync(
@@ -85,6 +177,9 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
                 }
               );
             });
+
+            setIsSpeaking(false);
+            setCurrentViseme(null);
           } catch (error) {
             console.error("Error calling Azure AI Speech:", error);
           }
@@ -94,7 +189,6 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
           const newMessage = { role: message.role, content: message.transcript };
           setMessages((prev) => [...prev, newMessage]);
         }
-        // You might want to handle interim transcripts for more immediate lip-sync feedback
       }
     };
 
@@ -106,6 +200,7 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
     const onSpeechEnd = () => {
       console.log("speech end");
       setIsSpeaking(false);
+      setCurrentViseme(null);
     };
 
     const onError = (error: Error) => {
@@ -129,22 +224,61 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
     };
   }, []);
 
+  // Update current viseme based on timestamps
+  useEffect(() => {
+    if (!isSpeaking || visemeData.length === 0 || !synthesisStartTimeRef.current) return;
+
+    const intervalId = setInterval(() => {
+      const elapsed = Date.now() - synthesisStartTimeRef.current!;
+      
+      // Find the current viseme based on audio offset
+      const currentVisemeData = visemeData.find((item, index) => {
+        const nextItem = visemeData[index + 1];
+        return item.offset <= elapsed * 10000 && 
+               (!nextItem || nextItem.offset > elapsed * 10000);
+      });
+      
+      if (currentVisemeData) {
+        setCurrentViseme(currentVisemeData.id);
+      }
+    }, 33); // ~30fps update rate
+
+    return () => clearInterval(intervalId);
+  }, [isSpeaking, visemeData]);
+
   // Push to home page
   useEffect(() => {
     if (callStatus === CallStatus.FINISHED) router.push("/");
   }, [messages, callStatus, type, userId]);
 
   const handleCall = async () => {
+    console.log("handleCall invoked"); // Log when the function is called
     setCallStatus(CallStatus.CONNECTING);
-
-    await vapi.start(process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, {
-      variableValues: {
-        usernam: userName,
-        userid: userId,
-      },
-    });
+  
+    try {
+      const workflowId = process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID;
+      
+      if (!workflowId) {
+        throw new Error("VAPI workflow ID is not configured. Please set NEXT_PUBLIC_VAPI_WORKFLOW_ID in your environment variables.");
+      }
+      
+      console.log("Attempting to start VAPI call with workflow ID:", workflowId);
+      console.log("Passing variables:", { userName, userId });
+  
+      await vapi.start(workflowId, {
+        variableValues: {
+          usernam: userName,
+          userid: userId,
+        },
+      });
+  
+      console.log("VAPI call started successfully");
+    } catch (error) {
+      console.error("Error starting VAPI call:", error);
+      setCallStatus(CallStatus.INACTIVE);
+    }
   };
-
+  
   const handleDisconnect = async () => {
     setCallStatus(CallStatus.FINISHED);
     vapi.stop();
@@ -154,28 +288,46 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
 
   return (
     <>
-      <div className="flex justify-center items-center w-full gap-4">
-        {/* AI Interviewer Card */}
-        <div className="flex-1 max-w-[50%]">
-          <div style={{ width: '100%', height: '400px' }}>
-            
-            <Canvas camera={{ position: [0, 0.2, 1.5], fov: 20 }} dpr={[1, 2]}>
-              <ambientLight intensity={0.9} />
-              <directionalLight position={[0, 0.2, 2]} intensity={1.8} />
-              <directionalLight position={[0, 1, 0]} intensity={0.6} />
-              <Suspense fallback={null}>
-                <Avatar 
-                  avatar_url="/model.glb" 
-                />
-                <Environment preset="city" />
-              </Suspense>
-            </Canvas>
+      <div className="flex flex-col w-full">
+        {/* AI Interviewer Card - Full screen on larger viewports */}
+        <div className="w-full h-auto">
+          <div className="w-full h-0 pb-[100%] sm:pb-[90vh] relative">
+            <div className="absolute inset-0">
+              <Canvas 
+                camera={{ 
+                  position: [0, 1.5, 1.5], // Closer position for larger screens
+                  fov: 20 // Narrower field of view for a more zoomed-in appearance
+                }} 
+                dpr={[1, 2]} 
+                className="bulky-avatar"
+                style={{ 
+                  width: '100%', 
+                  height: '100%',
+                }}
+              >
+                <CameraController />
+                <ambientLight intensity={0.9} />
+                <directionalLight position={[0, 1.5, 2]} intensity={1.8} />
+                <directionalLight position={[0, 1, 0]} intensity={0.6} />
+                <Suspense fallback={null}>
+                  <Avatar 
+                    avatar_url="/model.glb" 
+                    isLargeScreen={true}
+                    speak={isSpeaking}
+                    currentViseme={currentViseme}
+                    visemeData={visemeData}
+                  />
+                  <Environment preset="city" />
+                </Suspense>
+              </Canvas>
+            </div>
           </div>
         </div>
-        {/* User Profile Card */}
-        <div className="flex-1 max-w-[50%]">
+        
+        {/* User Profile Card - Hidden for now */}
+        {/* <div className="flex-1 max-w-full md:max-w-[50%]">
           <Candidate />
-        </div>
+        </div> */}
       </div>
 
       <div>
@@ -227,12 +379,12 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
       </div>
 
       {/* For debugging: Display the viseme data */}
-      {visemeData.length > 0 && (
+      {/* {visemeData.length > 0 && (
         <div className="mt-4 p-4 border rounded">
           <h3>Viseme Data:</h3>
           <pre>{JSON.stringify(visemeData, null, 2)}</pre>
         </div>
-      )}
+      )} */}
     </>
   );
 };
