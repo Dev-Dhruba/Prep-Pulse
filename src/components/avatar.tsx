@@ -32,40 +32,45 @@ interface BlinkFrame {
 }
 
 // Map Azure viseme IDs to morph target names in the 3D model
-// Adjust these to match your model's actual morph target names
+// Carefully refined for natural lip movements
 const visemeMap = {
-  0: null, // silence
-  1: ["mouthClose", "mouthPucker"], // p, b, m
-  2: ["mouthLowerDown", "jawForward"], // f, v
-  3: ["tongueOut"], // th
-  4: ["mouthClose", "tongueUp"], // t, d
-  5: ["jawOpen", "tongueUp"], // k, g
-  6: ["mouthPucker", "jawForward"], // ch, j, sh
-  7: ["mouthNarrow", "mouthLowerDown"], // s, z
-  8: ["mouthNarrow", "tongueUp"], // n, l
-  9: ["mouthNarrow", "jawOpen"], // r
-  10: ["jawOpen"], // a
-  11: ["mouthSmile", "jawOpen"], // e
-  12: ["mouthNarrow", "jawOpen"], // i
-  13: ["mouthRound", "jawOpen"], // o
-  14: ["mouthPucker", "jawOpen"], // u
+  0: ["mouthClose", "mouthNeutral"], // silence - relaxed neutral position
+  1: ["mouthPucker", "mouthClose"], // p, b, m - closed lips with slight tension
+  2: ["mouthLowerDown", "jawForward"], // f, v - lower lip touching upper teeth
+  3: ["tongueOut", "mouthPartial"], // th - tongue between teeth
+  4: ["mouthClose", "tongueUp"], // t, d - tongue tip up
+  5: ["jawOpen", "tongueUp"], // k, g - back of tongue up
+  6: ["mouthPucker", "jawForward"], // ch, j, sh - rounded forward
+  7: ["mouthNarrow", "mouthLowerDown"], // s, z - teeth nearly together
+  8: ["mouthNarrow", "tongueUp"], // n, l - tongue tip to roof
+  9: ["mouthNarrow", "jawOpen"], // r - slightly open with narrow shape
+  10: ["jawOpen", "mouthWide"], // a - open mouth
+  11: ["mouthSmile", "jawOpen"], // e - wide smile with partial open
+  12: ["mouthNarrow", "jawOpen"], // i - narrow opening
+  13: ["mouthRound", "jawOpen"], // o - rounded lips medium opening
+  14: ["mouthPucker", "jawOpen"], // u - protruded lips
   15: ["jawOpen"], // default for special cases
   20: ["mouthPucker"], // touch edges of lips
   21: ["tongueUp"], // tongue behind top teeth
 };
 
 // Mapping between common viseme names and specific model's morph target names
+// Expanded for better lip shape precision
 const morphTargetNameMap = {
-  "mouthClose": ["mouthClose", "viseme_PP"],
+  "mouthClose": ["mouthClose", "viseme_PP", "mouthFunnel"],
   "mouthPucker": ["mouthPucker", "viseme_OO", "viseme_ou"],
-  "mouthLowerDown": ["mouthLowerDown", "viseme_FF"],
+  "mouthLowerDown": ["mouthLowerDown", "viseme_FF", "jawDown"],
+  "mouthUpperUp": ["mouthUpperUp", "viseme_UU", "upperLipUp"],
   "jawForward": ["jawForward"],
   "tongueOut": ["tongueOut", "viseme_TH"],
-  "tongueUp": ["tongueUp", "viseme_DD"],
+  "tongueUp": ["tongueUp", "viseme_DD", "viseme_nn"],
   "jawOpen": ["jawOpen", "viseme_aa", "viseme_oh"],
   "mouthNarrow": ["mouthNarrow", "viseme_RR", "viseme_SS"],
-  "mouthRound": ["mouthRound", "viseme_oh"],
-  "mouthSmile": ["mouthSmile", "viseme_E", "viseme_ih"]
+  "mouthRound": ["mouthRound", "viseme_oh", "mouthFunnel"],
+  "mouthSmile": ["mouthSmile", "viseme_E", "viseme_ih"],
+  "mouthWide": ["mouthWide", "mouthStretch", "viseme_aa"],
+  "mouthNeutral": ["viseme_neutral", "mouthRelax"],
+  "mouthPartial": ["mouthPartial", "viseme_TH"]
 };
 
 function Avatar({ 
@@ -369,63 +374,206 @@ function Avatar({
     
     return timeSinceLastBlink > nextBlinkTime;
   };
-
+// Add this function to control morph target weights
+const getVisemeWeight = (morphName: string, defaultWeight: number = 1.0) => {
+  // Lower weights for specific morphs that affect lower lip
+  if (morphName.toLowerCase().includes('jawopen') || 
+      morphName.toLowerCase().includes('mouthlowerdown')) {
+    return 0.5; // Reduce the influence to 50%
+  }
+  
+  // For other mouth morphs, use moderate influence
+  if (morphName.toLowerCase().includes('mouth') ||
+      morphName.toLowerCase().includes('viseme')) {
+    return 0.7; // 70% influence for general mouth shapes
+  }
+  
+  return defaultWeight;
+};
   // Apply viseme to the morph targets
-  const applyViseme = useCallback((visemeId: number | null) => {
-    if (visemeId === null || !mouthRef.current || !allMorphTargets) return;
-    
-    // Reset all mouth-related morph targets first
-    Object.entries(allMorphTargets).forEach(([name, { mesh, index }]) => {
-      if (name.toLowerCase().includes('mouth') || 
-          name.toLowerCase().includes('jaw') || 
-          name.toLowerCase().includes('tongue') ||
-          name.toLowerCase().includes('viseme')) {
-        if (mesh.morphTargetInfluences) {
-          mesh.morphTargetInfluences[index] = 0;
-        }
-      }
-    });
-    
-    // Get the viseme target names from the mapping
-    const targetVisemes = visemeMap[visemeId as keyof typeof visemeMap];
-    if (!targetVisemes) return;
-    
-    // Apply the new viseme
-    targetVisemes.forEach(targetName => {
-      // Get model-specific morph target names
-      const modelTargetNames = morphTargetNameMap[targetName as keyof typeof morphTargetNameMap] || [targetName];
-      
-      modelTargetNames.forEach(morphName => {
-        const morphTarget = Object.entries(allMorphTargets).find(([name]) => 
-          name.toLowerCase() === morphName.toLowerCase()
-        );
-        
-        if (morphTarget) {
-          const [_, { mesh, index }] = morphTarget;
-          if (mesh.morphTargetInfluences) {
-            mesh.morphTargetInfluences[index] = 1.0; // Set to full influence
-            // console.log(`Applied viseme ${visemeId} to morph target ${morphName}`);
+  const applyVisemeEnhanced = useCallback(
+    (visemeId: number | null, transitionDuration: number = 0.1) => {
+      if (visemeId === null || !mouthRef.current || !allMorphTargets) return;
+  
+      const targetVisemes = visemeMap[visemeId as keyof typeof visemeMap];
+      if (!targetVisemes) return;
+  
+      // Smoothly transition influences over time
+      const now = performance.now();
+      const endTransitionTime = now + transitionDuration * 1000;
+  
+      const smoothTransition = () => {
+        const currentTime = performance.now();
+        const elapsedTime = Math.min(currentTime - now, transitionDuration * 1000);
+        const t = elapsedTime / (transitionDuration * 1000);
+  
+        // Reset all mouth-related morph targets
+        Object.entries(allMorphTargets).forEach(([name, { mesh, index }]) => {
+          if (
+            name.toLowerCase().includes("mouth") ||
+            name.toLowerCase().includes("jaw") ||
+            name.toLowerCase().includes("tongue") ||
+            name.toLowerCase().includes("viseme")
+          ) {
+            if (mesh.morphTargetInfluences) {
+              mesh.morphTargetInfluences[index] *= 1 - t; // Gradual reset
+            }
           }
-        } else {
-          // Try applying based on name pattern matching
-          Object.entries(allMorphTargets).forEach(([name, { mesh, index }]) => {
-            if (name.toLowerCase().includes(morphName.toLowerCase())) {
+        });
+  
+        // Apply new viseme influences
+        targetVisemes.forEach((targetName) => {
+          const modelTargetNames =
+            morphTargetNameMap[targetName as keyof typeof morphTargetNameMap] ||
+            [targetName];
+  
+          modelTargetNames.forEach((morphName) => {
+            const morphTarget = Object.entries(allMorphTargets).find(([name]) =>
+              name.toLowerCase().includes(morphName.toLowerCase())
+            );
+  
+            if (morphTarget) {
+              const [_, { mesh, index }] = morphTarget;
               if (mesh.morphTargetInfluences) {
-                mesh.morphTargetInfluences[index] = 1.0;
-                // console.log(`Applied viseme ${visemeId} to similar morph target ${name}`);
+                mesh.morphTargetInfluences[index] =
+                  (1 - t) * mesh.morphTargetInfluences[index] + t;
               }
             }
           });
+        });
+  
+        if (currentTime < endTransitionTime) {
+          requestAnimationFrame(smoothTransition);
         }
-      });
-    });
+      };
+  
+      smoothTransition();
+    },
+    [allMorphTargets]
+  );
+
+  // Apply viseme to the morph targets with improved natural movement
+const applyViseme = useCallback((visemeId: number | null) => {
+  if (visemeId === null || !mouthRef.current || !allMorphTargets) return;
+  
+  // Reset all mouth-related morph targets first
+  Object.entries(allMorphTargets).forEach(([name, { mesh, index }]) => {
+    if (name.toLowerCase().includes('mouth') || 
+        name.toLowerCase().includes('jaw') || 
+        name.toLowerCase().includes('tongue') ||
+        name.toLowerCase().includes('viseme') ||
+        name.toLowerCase().includes('lip')) {
+      if (mesh.morphTargetInfluences) {
+        // Gradual reset for smoother transitions
+        mesh.morphTargetInfluences[index] *= 0.5; // Fade out previous viseme
+      }
+    }
+  });
+  
+  // Get the viseme target names from the mapping
+  const targetVisemes = visemeMap[visemeId as keyof typeof visemeMap];
+  if (!targetVisemes) return;
+  
+  // Apply the new viseme with varying intensities and balance
+  targetVisemes.forEach((targetName, idx) => {
+    // Get model-specific morph target names
+    const modelTargetNames = morphTargetNameMap[targetName as keyof typeof morphTargetNameMap] || [targetName];
     
-  }, [allMorphTargets]);
+    // Calculate influence based on position in the array (primary vs secondary targets)
+    const baseInfluence = idx === 0 ? 0.9 : 0.6; // Reduced from 1.0 to 0.9 for more natural look
+    
+    modelTargetNames.forEach(morphName => {
+      // Fine-tuned influence adjustment based on morphTarget type
+      let influenceMultiplier = 1.0;
+      
+      // Careful balance between upper and lower lip
+      if (morphName.toLowerCase().includes('upper') || 
+          morphName.toLowerCase().includes('up')) {
+        influenceMultiplier = 1.25; // 25% more influence for upper lip morphs
+      }
+      
+      // Reduce influence for jaw and lower lip movements
+      if (morphName.toLowerCase().includes('lower') || 
+          morphName.toLowerCase().includes('jaw')) {
+        influenceMultiplier = 0.7; // 30% less influence for lower movements
+      }
+      
+      // Specific adjustment for jawOpen to prevent excessive movement
+      if (morphName.toLowerCase().includes('jawopen')) {
+        influenceMultiplier = 0.5; // Even less for jaw open to avoid exaggeration
+      }
+      
+      const morphTarget = Object.entries(allMorphTargets).find(([name]) => 
+        name.toLowerCase() === morphName.toLowerCase() || name.toLowerCase().includes(morphName.toLowerCase())
+      );
+      
+      if (morphTarget) {
+        const [name, { mesh, index }] = morphTarget;
+        if (mesh.morphTargetInfluences) {
+          // Apply calculated influence with constraints for natural motion
+          let finalInfluence = Math.min(baseInfluence * influenceMultiplier, 1.0);
+          
+          // Additional constraints for natural speech
+          if (name.toLowerCase().includes('jawopen')) {
+            // Maximum opening for the jaw - prevents unnaturally large movements
+            finalInfluence = Math.min(finalInfluence, 0.45);
+          }
+          if (name.toLowerCase().includes('lower')) {
+            // Maximum movement for lower lip - prevents rising too high
+            finalInfluence = Math.min(finalInfluence, 0.5);
+          }
+          
+          // Apply with smooth interpolation - blend with current value for smoother transitions
+          const currentValue = mesh.morphTargetInfluences[index] || 0;
+          mesh.morphTargetInfluences[index] = currentValue * 0.3 + finalInfluence * 0.7;
+        }
+      } else {
+        // Pattern matching for similar morph targets
+        Object.entries(allMorphTargets).forEach(([name, { mesh, index }]) => {
+          if (name.toLowerCase().includes(morphName.toLowerCase())) {
+            if (mesh.morphTargetInfluences) {
+              // Custom influence based on the type of morph
+              let finalInfluence = baseInfluence;
+              
+              // Balance upper and lower lip movements
+              if (name.toLowerCase().includes('upper')) {
+                finalInfluence *= 1.25; // Boost upper lip
+              }
+              
+              if (name.toLowerCase().includes('lower') || name.toLowerCase().includes('jaw')) {
+                finalInfluence *= 0.7; // Reduce lower movements
+                finalInfluence = Math.min(finalInfluence, 0.5);
+              }
+              
+              // Apply with interpolation
+              const currentValue = mesh.morphTargetInfluences[index] || 0;
+              mesh.morphTargetInfluences[index] = currentValue * 0.3 + Math.min(finalInfluence, 1.0) * 0.7;
+            }
+          }
+        });
+      }
+    });
+  });
+  
+  // Add subtle randomization for natural appearance
+  Object.entries(allMorphTargets).forEach(([name, { mesh, index }]) => {
+    if ((name.toLowerCase().includes('mouth') || name.toLowerCase().includes('lip')) && 
+        !name.toLowerCase().includes('jawopen') && 
+        mesh.morphTargetInfluences) {
+      // Add tiny random variations (1-3%) to avoid robotic precision
+      mesh.morphTargetInfluences[index] += (Math.random() - 0.5) * 0.03;
+      
+      // Ensure values stay within valid range
+      mesh.morphTargetInfluences[index] = Math.max(0, Math.min(mesh.morphTargetInfluences[index], 1.0));
+    }
+  });
+  
+}, [allMorphTargets]);
 
   // Update when current viseme changes
   useEffect(() => {
     if (speak) {
-      applyViseme(currentViseme!);
+      applyVisemeEnhanced(currentViseme!);
     } else {
       // Reset all mouth morphs when not speaking
       Object.entries(allMorphTargets).forEach(([name, { mesh, index }]) => {
@@ -439,7 +587,7 @@ function Avatar({
         }
       });
     }
-  }, [speak, currentViseme, applyViseme, allMorphTargets]);
+  }, [speak, currentViseme, applyVisemeEnhanced, allMorphTargets]);
 
   // Handle blinking animation using the frame data
   useFrame((state, delta) => {

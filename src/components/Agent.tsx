@@ -33,77 +33,6 @@ interface SavedMessage {
   content: string;
 }
 
-// Function to map letters to viseme IDs
-const getVisemeIdForLetter = (letter: string): number => {
-  // Convert letter to lowercase for consistent mapping
-  const lowerLetter = letter.toLowerCase();
-  
-  // Viseme mapping based on common phonetic mouth shapes
-  // These mappings are approximate and may need adjustment based on your model
-  const visemeMap: { [key: string]: number } = {
-    'a': 1,  // Ah sound (open mouth)
-    'b': 2,  // B, M, P (closed lips)
-    'c': 3,  // CH, J, SH (pursed lips)
-    'd': 4,  // D, L, N, T (tongue at teeth/alveolar ridge)
-    'e': 5,  // EE sound (smile shape)
-    'f': 6,  // F, V (bottom lip touching upper teeth)
-    'g': 7,  // G, K (back of mouth closure)
-    'h': 1,  // H (slight opening)
-    'i': 5,  // I (similar to E, slightly more closed)
-    'j': 3,  // Similar to CH
-    'k': 7,  // Similar to G
-    'l': 4,  // Similar to D
-    'm': 2,  // Similar to B
-    'n': 4,  // Similar to D
-    'o': 8,  // O sound (rounded lips)
-    'p': 2,  // Similar to B
-    'q': 7,  // Similar to K sound
-    'r': 9,  // R (slight rounding)
-    's': 10, // S, Z (teeth exposure)
-    't': 4,  // Similar to D
-    'u': 8,  // Similar to O
-    'v': 6,  // Similar to F
-    'w': 8,  // W (rounded lips)
-    'x': 10, // Similar to S at start
-    'y': 5,  // Y (similar to long E)
-    'z': 10, // Similar to S
-    ' ': 0,  // Neutral position for space
-    '.': 0,  // Neutral for punctuation
-    ',': 0,  // Neutral for punctuation
-    '?': 0,  // Neutral for punctuation
-    '!': 0,  // Neutral for punctuation
-  };
-  
-  // Return the viseme ID or default to neutral (0) if not found
-  return visemeMap[lowerLetter] || 0;
-};
-
-// Function to generate viseme data from text
-const generateVisemeDataFromText = (text: string): { id: number; offset: number }[] => {
-  const visemeData: { id: number; offset: number }[] = [];
-  
-  // Set base time per character (milliseconds)
-  const msPerChar = 80;
-  
-  console.log("Generating viseme data for text:", text);
-  
-  // Generate viseme data for each character
-  for (let i = 0; i < text.length; i++) {
-    const letter = text[i];
-    const visemeId = getVisemeIdForLetter(letter);
-    
-    console.log(`Letter: '${letter}' => Viseme ID: ${visemeId}`);
-    
-    visemeData.push({
-      id: visemeId,
-      // Convert to 100-nanosecond units as used by Azure Speech SDK
-      offset: i * msPerChar * 10000
-    });
-  }
-  
-  return visemeData;
-};
-
 const Agent = ({ userName, userId, type }: AgentProps) => {
   const router = useRouter();
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -139,18 +68,30 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
 
             const synthesizer = new sdk.SpeechSynthesizer(speechConfig, null);
             
-            // Generate viseme data from text before starting speech synthesis
-            const generatedVisemeData = generateVisemeDataFromText(textToAnalyze);
-            setVisemeData(generatedVisemeData);
+            // Clear previous viseme data
+            setVisemeData([]);
             synthesisStartTimeRef.current = Date.now();
+            
+            // Array to collect viseme data from Azure
+            const azureVisemeData: { id: number; offset: number }[] = [];
 
-            // Still use Azure's viseme events if available
+            // Set up viseme received event handler
             synthesizer.visemeReceived = (s, e) => {
               console.log(
                 `Azure Viseme Received: Id=${e.visemeId} AudioOffset=${e.audioOffset}`
               );
-              // We're now using our generated visemes, but logging Azure's for reference
+              
+              // Add this viseme to our collection
+              azureVisemeData.push({
+                id: e.visemeId,
+                offset: e.audioOffset / 10000 // Convert from 100-nanosecond units to milliseconds
+              });
+              
+              // Update the current viseme for immediate feedback
               setCurrentViseme(e.visemeId);
+              
+              // Update the complete viseme data array
+              setVisemeData([...azureVisemeData]);
             };
 
             setIsSpeaking(true);
@@ -224,24 +165,31 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
     };
   }, []);
 
-  // Update current viseme based on timestamps
+  // Update current viseme based on Azure's viseme data timestamps
   useEffect(() => {
     if (!isSpeaking || visemeData.length === 0 || !synthesisStartTimeRef.current) return;
 
     const intervalId = setInterval(() => {
       const elapsed = Date.now() - synthesisStartTimeRef.current!;
       
-      // Find the current viseme based on audio offset
-      const currentVisemeData = visemeData.find((item, index) => {
-        const nextItem = visemeData[index + 1];
-        return item.offset <= elapsed * 10000 && 
-               (!nextItem || nextItem.offset > elapsed * 10000);
-      });
-      
-      if (currentVisemeData) {
-        setCurrentViseme(currentVisemeData.id);
+      // Find the current viseme based on audio offset from Azure
+      let currentIndex = -1;
+      for (let i = 0; i < visemeData.length; i++) {
+        if (visemeData[i].offset <= elapsed) {
+          currentIndex = i;
+        } else {
+          break;
+        }
       }
-    }, 33); // ~30fps update rate
+      
+      if (currentIndex >= 0 && currentIndex < visemeData.length) {
+        // Set the current viseme for animation
+        setCurrentViseme(visemeData[currentIndex].id);
+      } else {
+        // Reset to neutral when not on any specific viseme
+        setCurrentViseme(0);
+      }
+    }, 16); // ~60fps update rate for smoother animation
 
     return () => clearInterval(intervalId);
   }, [isSpeaking, visemeData]);
