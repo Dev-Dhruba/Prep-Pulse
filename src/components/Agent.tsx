@@ -165,34 +165,62 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
     };
   }, []);
 
-  // Update current viseme based on Azure's viseme data timestamps
+  // Update the viseme timing control for better lip sync
   useEffect(() => {
     if (!isSpeaking || visemeData.length === 0 || !synthesisStartTimeRef.current) return;
-
+  
+    // Buffer visemes for smoother transitions and better timing
+    const visemeBuffer: {id: number, startTime: number, endTime: number}[] = [];
+    
+    // Pre-process visemes to create timing windows
+    for (let i = 0; i < visemeData.length; i++) {
+      const currentViseme = visemeData[i];
+      const nextViseme = visemeData[i + 1];
+      
+      const startTime = currentViseme.offset;
+      // If there's a next viseme, use its time as end, otherwise estimate duration
+      const endTime = nextViseme ? nextViseme.offset : startTime + 100;
+      
+      visemeBuffer.push({
+        id: currentViseme.id,
+        startTime,
+        endTime
+      });
+    }
+    
+    console.log(`Processed ${visemeBuffer.length} visemes for animation`);
+    
     const intervalId = setInterval(() => {
       const elapsed = Date.now() - synthesisStartTimeRef.current!;
       
-      // Find the current viseme based on audio offset from Azure
-      let currentIndex = -1;
-      for (let i = 0; i < visemeData.length; i++) {
-        if (visemeData[i].offset <= elapsed) {
-          currentIndex = i;
-        } else {
+      // Find current viseme based on time windows
+      let activeViseme = null;
+      
+      // Add a variable offset based on speech rate
+      const dynamicOffset = 40; // milliseconds ahead to compensate for rendering delay
+      const adjustedTime = elapsed + dynamicOffset;
+      
+      // Find which viseme window we're currently in
+      for (const viseme of visemeBuffer) {
+        if (adjustedTime >= viseme.startTime && adjustedTime < viseme.endTime) {
+          activeViseme = viseme.id;
           break;
         }
       }
       
-      if (currentIndex >= 0 && currentIndex < visemeData.length) {
-        // Set the current viseme for animation
-        setCurrentViseme(visemeData[currentIndex].id);
-      } else {
-        // Reset to neutral when not on any specific viseme
-        setCurrentViseme(0);
+      // If no active viseme found but still speaking, use the neutral viseme
+      if (activeViseme === null && isSpeaking) {
+        activeViseme = 0; // neutral viseme
       }
-    }, 16); // ~60fps update rate for smoother animation
-
+      
+      // Only update when there's a change to avoid unnecessary renders
+      if (activeViseme !== currentViseme) {
+        setCurrentViseme(activeViseme);
+      }
+    }, 10); // Higher update rate (100fps) for more precise timing
+    
     return () => clearInterval(intervalId);
-  }, [isSpeaking, visemeData]);
+  }, [isSpeaking, visemeData, currentViseme]);
 
   // Push to home page
   useEffect(() => {
