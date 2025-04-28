@@ -94,13 +94,6 @@ interface BlendData {
 function Avatar({ 
   avatar_url, 
   speak, 
-  setSpeak, 
-  text, 
-  setAudioSource, 
-  playing, 
-  isLargeScreen,
-  currentViseme,
-  visemeData,
   currentBlendData
 }: AvatarProps) {
   let gltf = useGLTF(avatar_url);
@@ -380,19 +373,10 @@ function Avatar({
     idleAction.play();
   }, [mixer, idleClips]);
 
-  // Effect to create lip sync animations from blendData
+  // Handle updating the animation when speaking or when blend data changes
   useEffect(() => {
-    // Return early if not speaking or no blend data available
-    if (!speak || !currentBlendData || !Array.isArray(currentBlendData) || currentBlendData.length === 0) {
-      // Stop any existing animations when not speaking
-      if (bodyAnimationRef.current) {
-        bodyAnimationRef.current.fadeOut(0.2);
-        bodyAnimationRef.current = null;
-      }
-      if (teethAnimationRef.current) {
-        teethAnimationRef.current.fadeOut(0.2);
-        teethAnimationRef.current = null;
-      }
+    // Nothing to do if there's no blend data
+    if (!currentBlendData || !Array.isArray(currentBlendData) || currentBlendData.length === 0) {
       return;
     }
 
@@ -464,7 +448,31 @@ function Avatar({
     } catch (error) {
       console.error("Error creating animations from blend data:", error);
     }
-  }, [speak, currentBlendData, morphTargetDictionaryBody, morphTargetDictionaryLowerTeeth, mixer]);
+  }, [currentBlendData, morphTargetDictionaryBody, morphTargetDictionaryLowerTeeth, mixer]);
+
+  // Handle stopping animations when speech ends
+  useEffect(() => {
+    if (!speak && bodyAnimationRef.current) {
+      console.log("Stopping speech animations");
+      // Fade out the animations when speech stops
+      bodyAnimationRef.current.fadeOut(0.2);
+      bodyAnimationRef.current = null;
+      
+      if (teethAnimationRef.current) {
+        teethAnimationRef.current.fadeOut(0.2);
+        teethAnimationRef.current = null;
+      }
+      
+      // Reset all mouth-related morph targets to close the mouth
+      Object.entries(allMorphTargets).forEach(([name, { mesh, index }]) => {
+        if ((name.toLowerCase().includes('mouth') || 
+             name.toLowerCase().includes('jaw')) && 
+            mesh.morphTargetInfluences) {
+          mesh.morphTargetInfluences[index] = 0;
+        }
+      });
+    }
+  }, [speak, allMorphTargets]);
 
   // Function to check if it's time to blink
   const shouldBlink = () => {

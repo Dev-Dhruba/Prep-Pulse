@@ -5,23 +5,11 @@ import { vapi } from "@/lib/vapi.sdk";
 import { cn } from "@/lib/utils";
 import Avatar from "./avatar";
 import Candidate from "./candidate";
-import * as sdk from "microsoft-cognitiveservices-speech-sdk"; // Import Azure SDK
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
 import * as THREE from "three";
-// Import the textToSpeech function
-import textToSpeech, { getVisemeData } from "@/utils/functions/tts";
+import { getVisemeData } from "@/utils/functions/tts";
 
-// Define the interface for TTS result
-interface TTSResult {
-  audioUrl: string;
-  visemeData: {
-    time: number;
-    blendshapes: {
-      [key: string]: number;
-    };
-  }[];
-}
 
 // Camera control component to look at the model's face
 function CameraController() {
@@ -67,8 +55,6 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
   useEffect(() => {
     const onCallStart = () => {
       setCallStatus(CallStatus.ACTIVE);
-      // Don't mute VAPI audio so it can hear user input
-      // vapi.setMuted(true);
     };
 
     const onCallEnd = () => {
@@ -105,11 +91,7 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
         // Create new abort controller for this request
         abortControllerRef.current = new AbortController();
         
-        // Set speaking state for animation
-        // setIsSpeaking(true);
-        synthesisStartTimeRef.current = Date.now();
-        
-        // Use getVisemeData to generate blend data without audio
+        // Generate viseme data before audio starts to ensure lip sync
         await getVisemeData(
           text,
           (visemeData) => {
@@ -119,9 +101,11 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
               (window as any).currentBlendData = visemeData;
             }
             setCurrentBlendData(visemeData);
+            
+            // Only set speaking to true once we have viseme data
+            // This ensures lip movement starts with speech
             setIsSpeaking(true);
             synthesisStartTimeRef.current = Date.now();
-            // vapi.say(text);
           },
           abortControllerRef.current
         );
@@ -136,22 +120,59 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
       console.log("speech start");
       // Temporarily mute VAPI when it's speaking to avoid feedback
       vapi.setMuted(true);
-      // We set isSpeaking to true here to sync with VAPI's audio
-      setIsSpeaking(false);
+      
+      // Don't set speaking to true here anymore
+      // Instead, we'll wait for viseme data to be ready
+      // But we can use a fallback if needed
+      if (!currentBlendData) {
+        // If we don't have viseme data yet, we should at least show some animation
+        // Create minimal blend data for simple mouth movement until real data arrives
+        const fallbackBlendData = createFallbackBlendData();
+        setCurrentBlendData(fallbackBlendData);
+        setIsSpeaking(true);
+      }
+      
       synthesisStartTimeRef.current = Date.now();
+    };
+
+    // Create simple fallback blend data for mouth movement
+    const createFallbackBlendData = () => {
+      const fallbackData = [];
+      // Create 3 seconds of minimal mouth movement data
+      for (let i = 0; i < 90; i++) { // 3 seconds at 30fps
+        fallbackData.push({
+          time: i / 30,
+          blendshapes: {
+            // Simple open-close mouth cycle
+            "jawOpen": Math.sin(i / 5) * 0.2 + 0.1,
+            "mouthClose": Math.cos(i / 5) * 0.2,
+            "eyeBlinkLeft": 0,
+            "eyeBlinkRight": 0,
+            "mouthSmileLeft": 0.1,
+            "mouthSmileRight": 0.1
+          }
+        });
+      }
+      return fallbackData;
     };
 
     const onSpeechEnd = () => {
       console.log("speech end");
       // Unmute VAPI after speech ends so it can hear user responses
       vapi.setMuted(false);
+      
+      // Stop animation and clear blend data
       setIsSpeaking(false);
       setCurrentViseme(null);
-      // Clear blend data when speech ends - only on client side
-      if (typeof window !== 'undefined') {
-        (window as any).currentBlendData = null;
-      }
-      setCurrentBlendData(null);
+      
+      // Add a small delay to ensure mouth closes naturally
+      setTimeout(() => {
+        // Clear blend data when speech ends - only on client side
+        if (typeof window !== 'undefined') {
+          (window as any).currentBlendData = null;
+        }
+        setCurrentBlendData(null);
+      }, 200);
     };
 
     const onError = (error: Error) => {
