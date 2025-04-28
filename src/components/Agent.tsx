@@ -1,14 +1,17 @@
 "use client";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState, Suspense, useRef } from "react";
+import React, { useEffect, useState, Usecallback Suspense, useRef } from "react";
+
 import { vapi } from "@/lib/vapi.sdk";
 import { cn } from "@/lib/utils";
 import Avatar from "./avatar";
 import Candidate from "./candidate";
+
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
 import * as THREE from "three";
 import { getVisemeData } from "@/utils/functions/tts";
+import { interviewer } from "./constants";
 
 
 // Camera control component to look at the model's face
@@ -34,11 +37,12 @@ interface SavedMessage {
   content: string;
 }
 
-const Agent = ({ userName, userId, type }: AgentProps) => {
+const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) => {
   const router = useRouter();
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [callStatus, setCallStatus] = useState<CallStatus>(CallStatus.INACTIVE);
   const [messages, setMessages] = useState<SavedMessage[]>([]);
+
   const [visemeData, setVisemeData] = useState<
     { id: number; offset: number }[]
   >([]);
@@ -51,6 +55,7 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
   useEffect(() => {
     // No audio context needed since we're using VAPI for audio
   }, []);
+
 
   useEffect(() => {
     const onCallStart = () => {
@@ -197,34 +202,64 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
   }, []);
 
 
-  // Push to home page
+  const handleGenerateFeedback = useCallback(
+    async (messages: SavedMessage[]) => {
+      console.log("handleGenerateFeedback");
+      console.log("Generate feedback here");
+      console.log(messages);
+
+      const { success, id } = {
+        success: "true",
+        id: "feedback-id",
+      };
+
+      if (success && id) {
+        router.push(`/interview/${interviewId}/feedback`);
+      } else {
+        console.log("error saving feature");
+        router.push("/");
+      }
+    },
+    [router, interviewId]
+  );
+
   useEffect(() => {
-    if (callStatus === CallStatus.FINISHED) router.push("/");
-  }, [messages, callStatus, type, userId, router]);
+    if (callStatus === CallStatus.FINISHED) {
+      if (type === "generate") {
+        router.push("/");
+      } else {
+        handleGenerateFeedback(messages);
+      }
+    }
+  }, [messages, callStatus, type, handleGenerateFeedback, router]);
+
 
   const handleCall = async () => {
     console.log("handleCall invoked"); // Log when the function is called
     setCallStatus(CallStatus.CONNECTING);
-  
-    try {
-      const workflowId = process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID;
-      
-      if (!workflowId) {
-        throw new Error("VAPI workflow ID is not configured. Please set NEXT_PUBLIC_VAPI_WORKFLOW_ID in your environment variables.");
-      }
-      
-      console.log("Attempting to start VAPI call with workflow ID:", workflowId);
-      console.log("Passing variables:", { userName, userId });
-      await vapi.start(workflowId, {
+
+
+    if (type === "generate") {
+      await vapi.start(process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, {
         variableValues: {
-          username: userName, // Fixed typo: usernam -> username
+          username: userName,
           userid: userId,
-        }
+        },
       });
-      
-    } catch (error) {
-      console.error("Error starting VAPI call:", error);
-      setCallStatus(CallStatus.INACTIVE);
+    } else {
+      let formattedQuestions = "";
+      if (questions) {
+        formattedQuestions = questions
+          .map((question) => `- ${question}`)
+          .join("\n");
+      }
+
+      await vapi.start(interviewer, {
+        variableValues: {
+          questions: formattedQuestions,
+        },
+      });
+
     }
   };
   
