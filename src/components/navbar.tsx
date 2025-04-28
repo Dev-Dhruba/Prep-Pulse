@@ -45,6 +45,7 @@ export default function Navbar() {
             { href: "/interview", label: "Interview" },
             { href: "/customize", label: "Customize" },
             { href: "/feedback", label: "Feedback" },
+            { href: "/pricing", label: "Pricing" }, 
           ].map((link) => (
             <Link
               key={link.href}
@@ -83,6 +84,7 @@ export default function Navbar() {
                 { href: "/interview", label: "Interview" },
                 { href: "/customize", label: "Customize" },
                 { href: "/feedback", label: "Feedback" },
+                { href: "/pricing", label: "Pricing" }, 
               ].map((link) => (
                 <Link
                   key={link.href}
