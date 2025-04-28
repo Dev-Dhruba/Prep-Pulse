@@ -40,8 +40,19 @@ function createAnimation (recordedData, morphTargetDictionary, bodyPart) {
 
           if (! (modifiedKey(key) in morphTargetDictionary)) {return};
           
-          if (key == 'mouthShrugUpper') {
+          // Adjust blendshape values to make mouth movement more natural
+          if (key === 'mouthShrugUpper') {
             value += 0.4;
+          }
+          
+          // Reduce jawOpen to make mouth/teeth opening less extreme
+          if (key === 'jawOpen') {
+            value *= 0.6; // Scale down jaw opening by 40%
+          }
+          
+          // Adjust other mouth-related blendshapes for more natural movement
+          if (key.startsWith('mouth') || key === 'jawForward' || key === 'jawLeft' || key === 'jawRight') {
+            value *= 0.75; // Scale down other mouth movements by 25%
           }
 
           animation[morphTargetDictionary[modifiedKey(key)]].push(value)
