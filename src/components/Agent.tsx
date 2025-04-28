@@ -9,6 +9,19 @@ import * as sdk from "microsoft-cognitiveservices-speech-sdk"; // Import Azure S
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
 import * as THREE from "three";
+// Import the textToSpeech function
+import textToSpeech, { getVisemeData } from "@/utils/functions/tts";
+
+// Define the interface for TTS result
+interface TTSResult {
+  audioUrl: string;
+  visemeData: {
+    time: number;
+    blendshapes: {
+      [key: string]: number;
+    };
+  }[];
+}
 
 // Camera control component to look at the model's face
 function CameraController() {
@@ -43,10 +56,19 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
   >([]);
   const [currentViseme, setCurrentViseme] = useState<number | null>(null);
   const synthesisStartTimeRef = useRef<number | null>(null);
+  const [currentBlendData, setCurrentBlendData] = useState(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Remove unnecessary audio context initialization
+  useEffect(() => {
+    // No audio context needed since we're using VAPI for audio
+  }, []);
 
   useEffect(() => {
     const onCallStart = () => {
       setCallStatus(CallStatus.ACTIVE);
+      // Mute VAPI audio immediately when call starts
+      vapi.setMuted(true);
     };
 
     const onCallEnd = () => {
@@ -55,93 +77,72 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
 
     const onMessage = async (message: Message) => {
       console.log("VAPI Message:", message);
+      // Ensure VAPI is muted whenever we receive any message
+      vapi.setMuted(true);
+      
       if (message.type === "transcript") {
         const textToAnalyze = message.transcript;
-        if (textToAnalyze) {
-          try {
-            const speechConfig = sdk.SpeechConfig.fromSubscription(
-              process.env.NEXT_PUBLIC_AZURE_SPEECH_KEY!,
-              process.env.NEXT_PUBLIC_AZURE_SPEECH_REGION!
-            );
-            speechConfig.speechSynthesisOutputFormat =
-              sdk.SpeechSynthesisOutputFormat.Riff16Khz16BitMonoPcm; // Or another suitable audio format
-
-            const synthesizer = new sdk.SpeechSynthesizer(speechConfig, null);
-            
-            // Clear previous viseme data
-            setVisemeData([]);
-            synthesisStartTimeRef.current = Date.now();
-            
-            // Array to collect viseme data from Azure
-            const azureVisemeData: { id: number; offset: number }[] = [];
-
-            // Set up viseme received event handler
-            synthesizer.visemeReceived = (s, e) => {
-              console.log(
-                `Azure Viseme Received: Id=${e.visemeId} AudioOffset=${e.audioOffset}`
-              );
-              
-              // Add this viseme to our collection
-              azureVisemeData.push({
-                id: e.visemeId,
-                offset: e.audioOffset / 10000 // Convert from 100-nanosecond units to milliseconds
-              });
-              
-              // Update the current viseme for immediate feedback
-              setCurrentViseme(e.visemeId);
-              
-              // Update the complete viseme data array
-              setVisemeData([...azureVisemeData]);
-            };
-
-            setIsSpeaking(true);
-
-            await new Promise((resolve, reject) => {
-              synthesizer.speakTextAsync(
-                textToAnalyze,
-                (result) => {
-                  if (
-                    result.reason === sdk.ResultReason.SynthesizingAudioCompleted
-                  ) {
-                    console.log("Speech synthesis completed for visemes.");
-                    resolve(undefined);
-                  } else if (result.reason === sdk.ResultReason.Canceled) {
-                    console.error(
-                      `Speech synthesis canceled: ${result.errorDetails}`
-                    );
-                    reject(result.errorDetails);
-                  }
-                },
-                (err) => {
-                  console.error(`Error during speech synthesis: ${err}`);
-                  reject(err);
-                }
-              );
-            });
-
-            setIsSpeaking(false);
-            setCurrentViseme(null);
-          } catch (error) {
-            console.error("Error calling Azure AI Speech:", error);
-          }
+        
+        // For partial transcripts, we can start processing early
+        if (textToAnalyze && message.transcriptType === "partial" && textToAnalyze.length > 10) {
+          startVisemeProcessing(textToAnalyze);
         }
+        
+        const newMessage = { role: message.role, content: message.transcript };
+        setMessages((prev) => [...prev, newMessage]);
+      }
+    };
 
-        if (message.transcriptType === "final") {
-          const newMessage = { role: message.role, content: message.transcript };
-          setMessages((prev) => [...prev, newMessage]);
+    // Process text to generate viseme data for animation
+    const startVisemeProcessing = async (text: string) => {
+      try {
+        console.log("Generating viseme data for animation:", text.substring(0, 50) + "...");
+        
+        // Cancel any existing speech synthesis
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
+        }
+        
+        // Create new abort controller for this request
+        abortControllerRef.current = new AbortController();
+        
+        // Set speaking state for animation
+        setIsSpeaking(true);
+        synthesisStartTimeRef.current = Date.now();
+        
+        // Use getVisemeData to generate blend data without audio
+        await getVisemeData(
+          text,
+          (visemeData) => {
+            // Update viseme data for animation
+            (window as any).currentBlendData = visemeData;
+            setCurrentBlendData(visemeData);
+          },
+          abortControllerRef.current
+        );
+      } catch (error) {
+        if (error.message !== 'Speech synthesis cancelled') {
+          console.error("Error generating viseme data:", error);
         }
       }
     };
 
     const onSpeechStart = () => {
       console.log("speech start");
+      // Mute VAPI when its speech starts but keep our viseme animation
+      vapi.setMuted(true);
+      // We set isSpeaking to true here to sync with VAPI's audio
       setIsSpeaking(true);
+      synthesisStartTimeRef.current = Date.now();
     };
 
     const onSpeechEnd = () => {
       console.log("speech end");
       setIsSpeaking(false);
       setCurrentViseme(null);
+      // Clear blend data when speech ends
+      (window as any).currentBlendData = null;
+      setCurrentBlendData(null);
     };
 
     const onError = (error: Error) => {
@@ -165,59 +166,33 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
     };
   }, []);
 
-  // Update the viseme timing control for better lip sync
+  // Update the viseme timing control for better lip sync with the audio
   useEffect(() => {
     if (!isSpeaking || visemeData.length === 0 || !synthesisStartTimeRef.current) return;
   
-    // Buffer visemes for smoother transitions and better timing
-    const visemeBuffer: {id: number, startTime: number, endTime: number}[] = [];
-    
-    // Pre-process visemes to create timing windows
-    for (let i = 0; i < visemeData.length; i++) {
-      const currentViseme = visemeData[i];
-      const nextViseme = visemeData[i + 1];
-      
-      const startTime = currentViseme.offset;
-      // If there's a next viseme, use its time as end, otherwise estimate duration
-      const endTime = nextViseme ? nextViseme.offset : startTime + 100;
-      
-      visemeBuffer.push({
-        id: currentViseme.id,
-        startTime,
-        endTime
-      });
-    }
-    
-    console.log(`Processed ${visemeBuffer.length} visemes for animation`);
-    
+    // This interval will update the current viseme based on elapsed time
     const intervalId = setInterval(() => {
       const elapsed = Date.now() - synthesisStartTimeRef.current!;
       
-      // Find current viseme based on time windows
+      // Find the current viseme based on the elapsed time
       let activeViseme = null;
       
-      // Add a variable offset based on speech rate
-      const dynamicOffset = 40; // milliseconds ahead to compensate for rendering delay
-      const adjustedTime = elapsed + dynamicOffset;
-      
-      // Find which viseme window we're currently in
-      for (const viseme of visemeBuffer) {
-        if (adjustedTime >= viseme.startTime && adjustedTime < viseme.endTime) {
-          activeViseme = viseme.id;
+      for (let i = 0; i < visemeData.length; i++) {
+        const currentVis = visemeData[i];
+        const nextVis = visemeData[i + 1];
+        
+        // If this is the current viseme time window
+        if (elapsed >= currentVis.offset && (!nextVis || elapsed < nextVis.offset)) {
+          activeViseme = currentVis.id;
           break;
         }
-      }
-      
-      // If no active viseme found but still speaking, use the neutral viseme
-      if (activeViseme === null && isSpeaking) {
-        activeViseme = 0; // neutral viseme
       }
       
       // Only update when there's a change to avoid unnecessary renders
       if (activeViseme !== currentViseme) {
         setCurrentViseme(activeViseme);
       }
-    }, 10); // Higher update rate (100fps) for more precise timing
+    }, 16.7); // ~60fps for smoother lip animation
     
     return () => clearInterval(intervalId);
   }, [isSpeaking, visemeData, currentViseme]);
@@ -225,7 +200,7 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
   // Push to home page
   useEffect(() => {
     if (callStatus === CallStatus.FINISHED) router.push("/");
-  }, [messages, callStatus, type, userId]);
+  }, [messages, callStatus, type, userId, router]);
 
   const handleCall = async () => {
     console.log("handleCall invoked"); // Log when the function is called
@@ -240,15 +215,14 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
       
       console.log("Attempting to start VAPI call with workflow ID:", workflowId);
       console.log("Passing variables:", { userName, userId });
-  
+      // vapi.setMuted(true);
       await vapi.start(workflowId, {
         variableValues: {
           usernam: userName,
           userid: userId,
-        },
+        }
       });
-  
-      console.log("VAPI call started successfully");
+      
     } catch (error) {
       console.error("Error starting VAPI call:", error);
       setCallStatus(CallStatus.INACTIVE);
@@ -264,6 +238,16 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
 
   return (
     <>
+      {/* Hidden audio player to play the generated speech */}
+      {/* {audioSource && (
+        <audio 
+          ref={audioRef}
+          src={audioSource} 
+          onEnded={() => setIsSpeaking(false)}
+          style={{ display: 'none' }} 
+        />
+      )} */}
+
       <div className="flex flex-col w-full">
         {/* AI Interviewer Card - Full screen on larger viewports */}
         <div className="w-full h-auto">
@@ -292,6 +276,7 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
                     speak={isSpeaking}
                     currentViseme={currentViseme}
                     visemeData={visemeData}
+                    currentBlendData={(window as any).currentBlendData}
                   />
                   <Environment preset="city" />
                 </Suspense>
@@ -353,14 +338,6 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
           </button>
         )}
       </div>
-
-      {/* For debugging: Display the viseme data */}
-      {/* {visemeData.length > 0 && (
-        <div className="mt-4 p-4 border rounded">
-          <h3>Viseme Data:</h3>
-          <pre>{JSON.stringify(visemeData, null, 2)}</pre>
-        </div>
-      )} */}
     </>
   );
 };
