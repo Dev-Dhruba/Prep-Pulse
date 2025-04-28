@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
   transpilePackages: ['three'],
   webpack: (config) => {
     config.externals = [...(config.externals || []), {
@@ -16,13 +15,8 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Disable conflicting experimental features that might cause semver errors
   experimental: {
-    // Empty serverComponentsExternalPackages to avoid semver issues
-    serverComponentsExternalPackages: [],
-    // Turn off any other experimental features that might be causing issues
-    instrumentationHook: false,
-    serverActions: { allowedOrigins: [] }
+    serverExternalPackages: ['microsoft-cognitiveservices-speech-sdk'],
   }
 };
 
