@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState, Usecallback Suspense, useRef } from "react";
+import React, { useEffect, useState, useCallback, Suspense, useRef } from "react";
 
 import { vapi } from "@/lib/vapi.sdk";
 import { cn } from "@/lib/utils";
@@ -48,7 +48,9 @@ const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) =
   >([]);
   const [currentViseme, setCurrentViseme] = useState<number | null>(null);
   const synthesisStartTimeRef = useRef<number | null>(null);
-  const [currentBlendData, setCurrentBlendData] = useState(null);
+  const [currentBlendData, setCurrentBlendData] = useState<
+    { time: number; blendshapes: { [key: string]: number } }[] | null
+  >(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // Remove unnecessary audio context initialization
@@ -115,7 +117,7 @@ const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) =
           abortControllerRef.current
         );
       } catch (error) {
-        if (error.message !== 'Speech synthesis cancelled') {
+        if (error instanceof Error && error.message !== 'Speech synthesis cancelled') {
           console.error("Error generating viseme data:", error);
         }
       }
