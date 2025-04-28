@@ -83,7 +83,7 @@ const textToSpeech = async (text: string, abortController?: AbortController): Pr
                 try {
                     // Validate that animation data is not empty or malformed
                     if (!e.animation || typeof e.animation !== 'string' || e.animation.trim() === '') {
-                        console.warn("Received empty or invalid animation data");
+                        // console.warn("Received empty or invalid animation data");
                         return;
                     }
                     

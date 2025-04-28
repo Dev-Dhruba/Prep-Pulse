@@ -67,8 +67,8 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
   useEffect(() => {
     const onCallStart = () => {
       setCallStatus(CallStatus.ACTIVE);
-      // Mute VAPI audio immediately when call starts
-      vapi.setMuted(true);
+      // Don't mute VAPI audio so it can hear user input
+      // vapi.setMuted(true);
     };
 
     const onCallEnd = () => {
@@ -77,19 +77,18 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
 
     const onMessage = async (message: Message) => {
       console.log("VAPI Message:", message);
-      // Ensure VAPI is muted whenever we receive any message
-      vapi.setMuted(true);
       
       if (message.type === "transcript") {
         const textToAnalyze = message.transcript;
         
+        const newMessage = { role: message.role, content: message.transcript };
+        setMessages((prev) => [...prev, newMessage]);
+
         // For partial transcripts, we can start processing early
-        if (textToAnalyze && message.transcriptType === "partial" && textToAnalyze.length > 10) {
+        if (textToAnalyze && message.transcriptType === "partial" && textToAnalyze.length > 10  && message.role === "assistant") {
           startVisemeProcessing(textToAnalyze);
         }
         
-        const newMessage = { role: message.role, content: message.transcript };
-        setMessages((prev) => [...prev, newMessage]);
       }
     };
 
@@ -107,7 +106,7 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
         abortControllerRef.current = new AbortController();
         
         // Set speaking state for animation
-        setIsSpeaking(true);
+        // setIsSpeaking(true);
         synthesisStartTimeRef.current = Date.now();
         
         // Use getVisemeData to generate blend data without audio
@@ -115,8 +114,14 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
           text,
           (visemeData) => {
             // Update viseme data for animation
-            (window as any).currentBlendData = visemeData;
+            // Only access window on the client side
+            if (typeof window !== 'undefined') {
+              (window as any).currentBlendData = visemeData;
+            }
             setCurrentBlendData(visemeData);
+            setIsSpeaking(true);
+            synthesisStartTimeRef.current = Date.now();
+            // vapi.say(text);
           },
           abortControllerRef.current
         );
@@ -129,19 +134,23 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
 
     const onSpeechStart = () => {
       console.log("speech start");
-      // Mute VAPI when its speech starts but keep our viseme animation
+      // Temporarily mute VAPI when it's speaking to avoid feedback
       vapi.setMuted(true);
       // We set isSpeaking to true here to sync with VAPI's audio
-      setIsSpeaking(true);
+      setIsSpeaking(false);
       synthesisStartTimeRef.current = Date.now();
     };
 
     const onSpeechEnd = () => {
       console.log("speech end");
+      // Unmute VAPI after speech ends so it can hear user responses
+      vapi.setMuted(false);
       setIsSpeaking(false);
       setCurrentViseme(null);
-      // Clear blend data when speech ends
-      (window as any).currentBlendData = null;
+      // Clear blend data when speech ends - only on client side
+      if (typeof window !== 'undefined') {
+        (window as any).currentBlendData = null;
+      }
       setCurrentBlendData(null);
     };
 
@@ -166,36 +175,6 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
     };
   }, []);
 
-  // Update the viseme timing control for better lip sync with the audio
-  useEffect(() => {
-    if (!isSpeaking || visemeData.length === 0 || !synthesisStartTimeRef.current) return;
-  
-    // This interval will update the current viseme based on elapsed time
-    const intervalId = setInterval(() => {
-      const elapsed = Date.now() - synthesisStartTimeRef.current!;
-      
-      // Find the current viseme based on the elapsed time
-      let activeViseme = null;
-      
-      for (let i = 0; i < visemeData.length; i++) {
-        const currentVis = visemeData[i];
-        const nextVis = visemeData[i + 1];
-        
-        // If this is the current viseme time window
-        if (elapsed >= currentVis.offset && (!nextVis || elapsed < nextVis.offset)) {
-          activeViseme = currentVis.id;
-          break;
-        }
-      }
-      
-      // Only update when there's a change to avoid unnecessary renders
-      if (activeViseme !== currentViseme) {
-        setCurrentViseme(activeViseme);
-      }
-    }, 16.7); // ~60fps for smoother lip animation
-    
-    return () => clearInterval(intervalId);
-  }, [isSpeaking, visemeData, currentViseme]);
 
   // Push to home page
   useEffect(() => {
@@ -215,10 +194,9 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
       
       console.log("Attempting to start VAPI call with workflow ID:", workflowId);
       console.log("Passing variables:", { userName, userId });
-      // vapi.setMuted(true);
       await vapi.start(workflowId, {
         variableValues: {
-          usernam: userName,
+          username: userName, // Fixed typo: usernam -> username
           userid: userId,
         }
       });
@@ -238,16 +216,6 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
 
   return (
     <>
-      {/* Hidden audio player to play the generated speech */}
-      {/* {audioSource && (
-        <audio 
-          ref={audioRef}
-          src={audioSource} 
-          onEnded={() => setIsSpeaking(false)}
-          style={{ display: 'none' }} 
-        />
-      )} */}
-
       <div className="flex flex-col w-full">
         {/* AI Interviewer Card - Full screen on larger viewports */}
         <div className="w-full h-auto">
@@ -276,7 +244,7 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
                     speak={isSpeaking}
                     currentViseme={currentViseme}
                     visemeData={visemeData}
-                    currentBlendData={(window as any).currentBlendData}
+                    currentBlendData={currentBlendData}
                   />
                   <Environment preset="city" />
                 </Suspense>
