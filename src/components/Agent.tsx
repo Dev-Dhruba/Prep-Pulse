@@ -1,10 +1,11 @@
 "use client";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { vapi } from "@/lib/vapi.sdk";
 import { cn } from "@/lib/utils";
 import Avatar from "./avatar";
 import Candidate from "./candidate";
+import { interviewer } from "./constants";
 
 enum CallStatus {
   INACTIVE = "INACTIVE",
@@ -18,12 +19,11 @@ interface SavedMessage {
   content: string;
 }
 
-const Agent = ({ userName, userId, type }: AgentProps) => {
+const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) => {
   const router = useRouter();
   const [, setIsSpeaking] = useState(false);
   const [callStatus, setCallStatus] = useState<CallStatus>(CallStatus.INACTIVE);
   const [messages, setMessages] = useState<SavedMessage[]>([]);
-  // const [lastMessage, setLastMessage] = useState<string>("");
 
   useEffect(() => {
     const onCallStart = () => {
@@ -72,38 +72,61 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
     };
   }, []);
 
-  // Push to home page
+  const handleGenerateFeedback = useCallback(
+    async (messages: SavedMessage[]) => {
+      console.log("handleGenerateFeedback");
+      console.log("Generate feedback here");
+      console.log(messages);
+
+      const { success, id } = {
+        success: "true",
+        id: "feedback-id",
+      };
+
+      if (success && id) {
+        router.push(`/interview/${interviewId}/feedback`);
+      } else {
+        console.log("error saving feature");
+        router.push("/");
+      }
+    },
+    [router, interviewId]
+  );
+
   useEffect(() => {
-    if (callStatus === CallStatus.FINISHED) router.push("/");
-  }, [messages, callStatus, type, userId]);
-
-  // const handleGenerateFeedback = async (messages: SavedMessage[]) => {
-  //   console.log("handleGenerateFeedback");
-
-  //   const { success, feedbackId: id } = await createFeedback({
-  //     interviewId: interviewId!,
-  //     userId: userId!,
-  //     transcript: messages,
-  //     feedbackId,
-  //   });
-
-  //   if (success && id) {
-  //     router.push(`/interview/${interviewId}/feedback`);
-  //   } else {
-  //     console.log("Error saving feedback");
-  //     router.push("/");
-  //   }
-  // };
+    if (callStatus === CallStatus.FINISHED) {
+      if (type === "generate") {
+        router.push("/");
+      } else {
+        handleGenerateFeedback(messages);
+      }
+    }
+  }, [messages, callStatus, type, handleGenerateFeedback, router]);
 
   const handleCall = async () => {
     setCallStatus(CallStatus.CONNECTING);
 
-    await vapi.start(process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, {
-      variableValues: {
-        usernam: userName,
-        userid: userId,
-      },
-    });
+    if (type === "generate") {
+      await vapi.start(process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, {
+        variableValues: {
+          username: userName,
+          userid: userId,
+        },
+      });
+    } else {
+      let formattedQuestions = "";
+      if (questions) {
+        formattedQuestions = questions
+          .map((question) => `- ${question}`)
+          .join("\n");
+      }
+
+      await vapi.start(interviewer, {
+        variableValues: {
+          questions: formattedQuestions,
+        },
+      });
+    }
   };
 
   const handleDisconnect = async () => {
