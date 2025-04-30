@@ -88,15 +88,11 @@ export default function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              className={`relative text-sm font-medium transition-colors group ${
-                pathname === link.href ? "text-cosmic-blue" : "text-gray-300 hover:text-cosmic-blue"
-              }`}
+              className={`relative text-sm font-medium transition-colors group`}
             >
               {link.label}
               <span
-                className={`absolute -bottom-1 left-0 h-0.5 cosmic-gradient-bg transition-all duration-300 ${
-                  pathname === link.href ? "w-full" : "w-0 group-hover:w-full"
-                }`}
+                className={`absolute -bottom-1 left-0 h-0.5 cosmic-gradient-bg transition-all duration-300 w-0 group-hover:w-full`}
               ></span>
             </Link>
           ))}
@@ -211,8 +207,6 @@ export default function Navbar() {
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <span className={pathname === link.href ? "text-cosmic-cyan" : "text-cosmic-purple"}>
-                  </span>
                   {link.label}
                 </Link>
               ))}
