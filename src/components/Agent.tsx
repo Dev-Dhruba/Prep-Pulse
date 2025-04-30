@@ -69,7 +69,7 @@ const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) =
     };
 
     const onMessage = async (message: Message) => {
-      console.log("VAPI Message:", message);
+      // console.log("VAPI Message:", message);
       
       if (message.type === "transcript") {
         const textToAnalyze = message.transcript;
@@ -88,7 +88,7 @@ const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) =
     // Process text to generate viseme data for animation
     const startVisemeProcessing = async (text: string) => {
       try {
-        console.log("Generating viseme data for animation:", text.substring(0, 50) + "...");
+        // console.log("Generating viseme data for animation:", text.substring(0, 50) + "...");
         
         // Cancel any existing speech synthesis
         if (abortControllerRef.current) {
@@ -124,7 +124,7 @@ const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) =
     };
 
     const onSpeechStart = () => {
-      console.log("speech start");
+      // console.log("speech start");
       // Temporarily mute VAPI when it's speaking to avoid feedback
       vapi.setMuted(true);
       
@@ -164,7 +164,7 @@ const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) =
     };
 
     const onSpeechEnd = () => {
-      console.log("speech end");
+      // console.log("speech end");
       // Unmute VAPI after speech ends so it can hear user responses
       vapi.setMuted(false);
       
@@ -183,7 +183,7 @@ const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) =
     };
 
     const onError = (error: Error) => {
-      console.log("Error:", error);
+      // console.log("Error:", error);
     };
 
     vapi.on("call-start", onCallStart);
@@ -206,9 +206,9 @@ const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) =
 
   const handleGenerateFeedback = useCallback(
     async (messages: SavedMessage[]) => {
-      console.log("handleGenerateFeedback");
-      console.log("Generate feedback here");
-      console.log(messages);
+      // console.log("handleGenerateFeedback");
+      // console.log("Generate feedback here");
+      // console.log(messages);
 
       const { success, id } = {
         success: "true",
@@ -218,7 +218,7 @@ const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) =
       if (success && id) {
         router.push(`/interview/${interviewId}/feedback`);
       } else {
-        console.log("error saving feature");
+        // console.log("error saving feature");
         router.push("/");
       }
     },
@@ -237,7 +237,7 @@ const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) =
 
 
   const handleCall = async () => {
-    console.log("handleCall invoked"); // Log when the function is called
+    // console.log("handleCall invoked"); // Log when the function is called
     setCallStatus(CallStatus.CONNECTING);
 
 
