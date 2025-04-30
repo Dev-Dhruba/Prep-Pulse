@@ -1,8 +1,8 @@
 'use client';
 
-import React, { Suspense, useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { useGLTF, useTexture, Environment, useFBX, useAnimations } from '@react-three/drei';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { useFrame } from '@react-three/fiber';
+import { useGLTF, useTexture, useFBX, useAnimations } from '@react-three/drei';
 import { MeshStandardMaterial, LineBasicMaterial, MeshPhysicalMaterial, Vector2, LinearSRGBColorSpace, SRGBColorSpace, Mesh, SkinnedMesh, LineSegments } from 'three';
 import * as THREE from 'three';
 import _ from 'lodash';
@@ -12,13 +12,6 @@ import createAnimation from './converter';
 interface AvatarProps {
   avatar_url: string;
   speak?: boolean;
-  setSpeak?: (value: boolean) => void;
-  text?: string;
-  setAudioSource?: (source: string | null) => void;
-  playing?: boolean;
-  isLargeScreen?: boolean;
-  currentViseme?: number | null;
-  visemeData?: { id: number; offset: number }[];
   currentBlendData?: any[] | null;
 }
 
@@ -33,64 +26,6 @@ interface BlinkFrame {
   };
 }
 
-// Simplified viseme mapping for clearer lip sync
-const visemeMap = {
-  0: ["mouthClose"],           // silence/neutral
-  1: ["mouthClose"],           // p, b, m
-  2: ["mouthLowerDown"],       // f, v
-  3: ["mouthPartial"],         // th
-  4: ["tongueUp"],             // t, d
-  5: ["jawOpen"],              // k, g
-  6: ["mouthPucker"],          // ch, j, sh
-  7: ["mouthNarrow"],          // s, z
-  8: ["tongueUp"],             // n, l
-  9: ["mouthRound"],           // r
-  10: ["jawOpen", "mouthWide"],// a
-  11: ["mouthSmile"],          // e
-  12: ["mouthNarrow"],         // i
-  13: ["mouthRound"],          // o
-  14: ["mouthPucker"],         // u
-};
-
-// Direct mapping between viseme names and morph targets
-const morphTargetNameMap = {
-  "viseme_neutral": ["mouthClose", "mouthRelax", "viseme_neutral"],
-  "viseme_PP": ["mouthClose", "mouthFunnel", "viseme_PP"],
-  "viseme_FF": ["mouthLowerDown", "viseme_FF"],
-  "viseme_TH": ["tongueOut", "mouthPartial", "viseme_TH"],
-  "viseme_DD": ["tongueUp", "mouthPartial", "viseme_DD"],
-  "viseme_kk": ["jawOpen", "tongueUp", "viseme_kk"],
-  "viseme_CH": ["mouthPucker", "mouthFunnel", "viseme_CH"],
-  "viseme_SS": ["mouthNarrow", "viseme_SS"],
-  "viseme_nn": ["tongueUp", "mouthPartial", "viseme_nn"],
-  "viseme_RR": ["mouthNarrow", "mouthPartial", "viseme_RR"],
-  "viseme_aa": ["jawOpen", "mouthWide", "viseme_aa"],
-  "viseme_E": ["mouthSmile", "mouthWide", "viseme_E"],
-  "viseme_ih": ["mouthSmile", "mouthNarrow", "viseme_ih"],
-  "viseme_oh": ["mouthRound", "jawOpen", "viseme_oh"],
-  "viseme_ou": ["mouthPucker", "mouthRound", "viseme_ou"],
-  "mouthClose": ["mouthClose", "viseme_neutral"],
-  "mouthPucker": ["mouthPucker", "viseme_ou", "viseme_CH"],
-  "mouthLowerDown": ["mouthLowerDown", "viseme_FF"],
-  "mouthUpperUp": ["mouthUpperUp", "upperLipUp"],
-  "jawForward": ["jawForward"],
-  "tongueOut": ["tongueOut", "viseme_TH"],
-  "tongueUp": ["tongueUp", "viseme_DD", "viseme_nn"],
-  "jawOpen": ["jawOpen", "viseme_aa", "viseme_oh", "mouthOpen"],
-  "mouthNarrow": ["mouthNarrow", "viseme_RR", "viseme_SS"],
-  "mouthRound": ["mouthRound", "viseme_oh", "mouthFunnel"],
-  "mouthSmile": ["mouthSmile", "viseme_E", "viseme_ih"],
-  "mouthWide": ["mouthWide", "mouthStretch", "viseme_aa"],
-  "mouthPartial": ["mouthPartial", "viseme_TH"]
-};
-
-interface BlendData {
-  time: number;
-  blendshapes: {
-    [key: string]: number;
-  };
-}
-
 function Avatar({ 
   avatar_url, 
   speak, 
@@ -100,18 +35,12 @@ function Avatar({
   const [morphTargetDictionaryBody, setMorphTargetDictionaryBody] = useState<Record<string, number> | null>(null);
   const [morphTargetDictionaryLowerTeeth, setMorphTargetDictionaryLowerTeeth] = useState<Record<string, number> | null>(null);
   const [clips, setClips] = useState<THREE.AnimationClip[]>([]);
-  const [currentText, setCurrentText] = useState('');
-  const [isStreaming, setIsStreaming] = useState(false);
-  const streamRef = useRef(null);
   const mixer = useMemo(() => new THREE.AnimationMixer(gltf.scene), []);
   
   // Blink related refs and states
   const blinkTimeRef = useRef(0);
-  const blinkCycleRef = useRef(0);
-  const cycleTimeRef = useRef(0);
   const [lastBlinkTime, setLastBlinkTime] = useState(0);
   const [isBlinking, setIsBlinking] = useState(false);
-  const blinkDataRef = useRef<BlinkFrame[]>(blinkData);
   
   // References to track mesh objects that need blendshapes applied
   const eyeBlinkLeftRef = useRef<SkinnedMesh | null>(null);
