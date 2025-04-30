@@ -3,13 +3,32 @@
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Menu, X, Star } from "lucide-react"
-import { usePathname } from "next/navigation"
+import { Menu, X, Star, LogOut } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation"
+import { useAuth } from "@/utils/contexts/UserProvider"
+import { signOut } from "@/utils/functions/signout"
+import { toast } from "sonner"
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
+  const { user } = useAuth()
+
+  const handleSignOut = async () => {
+    try {
+      await signOut()
+      toast("Signed out successfully", {
+        description: "You have been logged out of your account."
+      })
+      router.push('/')
+    } catch (error) {
+      toast("Error signing out", {
+        description: "Please try again."
+      })
+    }
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -43,9 +62,9 @@ export default function Navbar() {
           {[
             { href: "/", label: "Home" },
             { href: "/interview", label: "Interview" },
-            { href: "/customize", label: "Customize" },
-            { href: "/feedback", label: "Feedback" },
+            { href: "/my-interviews", label: "my intu" },
             { href: "/pricing", label: "Pricing" }, 
+            { href: "/profile", label: "profile" },
           ].map((link) => (
             <Link
               key={link.href}
@@ -63,6 +82,21 @@ export default function Navbar() {
             </Link>
           ))}
         </nav>
+
+        <div className="flex items-center ml-4 gap-2">
+          {!user ? (
+            <Link href="/login">
+              <Button variant="ghost" className="text-cosmic-blue hover:bg-cosmic-blue/10">
+                Log In
+              </Button>
+            </Link>
+          ) : (
+            <Button variant="ghost" onClick={handleSignOut} className="text-cosmic-blue">
+              Sign Out
+              <LogOut className="ml-2 h-4 w-4" />
+            </Button>
+          )}
+        </div>
 
         <div className="ml-auto md:hidden">
           <Button
@@ -99,9 +133,22 @@ export default function Navbar() {
                   {link.label}
                 </Link>
               ))}
+              
+              {!user ? (
+                <Link href="/login" onClick={() => setIsMenuOpen(false)}>
+                  <Button variant="outline" className="w-full border-cosmic-blue text-cosmic-blue hover:bg-cosmic-blue/10">
+                    Log In
+                  </Button>
+                </Link>
+              ) : (
+                <Button variant="ghost" onClick={() => { handleSignOut(); setIsMenuOpen(false); }} className="w-full text-cosmic-blue justify-center">
+                  Sign Out <LogOut className="ml-2 h-4 w-4" />
+                </Button>
+              )}
             </nav>
           </div>
         )}
+
       </div>
 
       {/* Decorative stars */}

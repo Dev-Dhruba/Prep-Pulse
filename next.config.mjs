@@ -2,6 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['three'],
+  images: {
+    domains: ['lh3.googleusercontent.com', 'avatars.githubusercontent.com',"bxippjptmeobymrbwpah.supabase.co"],
+  },
   webpack: (config) => {
     config.externals = [...(config.externals || []), {
       'utf-8-validate': 'commonjs utf-8-validate',
