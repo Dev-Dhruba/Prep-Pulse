@@ -12,6 +12,7 @@ import { Environment } from "@react-three/drei";
 import * as THREE from "three";
 import { getVisemeData } from "@/utils/functions/tts";
 import { interviewer } from "./constants";
+import { Phone, PhoneOff } from "lucide-react";
 
 
 // Camera control component to look at the model's face
@@ -276,7 +277,7 @@ const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) =
     <>
       <div className="flex flex-col w-full">
         {/* AI Interviewer Card - Full screen on larger viewports */}
-        <div className="w-full h-auto">
+        <div className="w-full h-full">
           <div className="w-full h-0 pb-[100%] sm:pb-[90vh] relative">
             <div className="absolute inset-0">
               <Canvas 
@@ -311,10 +312,10 @@ const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) =
           </div>
         </div>
         
-        {/* User Profile Card - Hidden for now */}
-        {/* <div className="flex-1 max-w-full md:max-w-[50%]">
+        {/* User Profile Card - Small container at bottom right corner */}
+        <div className="fixed bottom-4 right-4 w-[180px] h-auto sm:w-[220px] md:w-[260px] lg:w-[300px] z-10 shadow-lg">
           <Candidate />
-        </div> */}
+        </div>
       </div>
 
       <div>
@@ -337,30 +338,26 @@ const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) =
 
       <br />
 
-      <div className="w-full flex justify-center">
+      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-20">
         {callStatus !== "ACTIVE" ? (
           <button
-            className="relative inline-block px-7 py-3 font-bold text-sm leading-5 text-white transition-colors duration-150 bg-success-100 border border-transparent rounded-full shadow-sm focus:outline-none focus:shadow-2xl active:bg-success-200 hover:bg-success-200 min-w-28 cursor-pointer items-center justify-center overflow-visible"
+            className="w-16 h-16 rounded-full bg-red-600 hover:bg-red-700 transition-colors duration-150 flex items-center justify-center shadow-lg focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-50"
             onClick={() => handleCall()}
           >
             <span
               className={cn(
-                "absolute animate-ping rounded-full opacity-75",
+                "absolute w-full h-full rounded-full bg-red-500 animate-ping opacity-75",
                 callStatus !== "CONNECTING" && "hidden"
               )}
             />
-            <span className="relative">
-              {callStatus === "INACTIVE" || callStatus === "FINISHED"
-                ? "Call"
-                : ". . ."}
-            </span>
+            <Phone className="text-white" size={24} />
           </button>
         ) : (
           <button
-            className="inline-block px-7 py-3 text-sm font-bold leading-5 text-white transition-colors duration-150 bg-destructive-100 border border-transparent rounded-full shadow-sm focus:outline-none focus:shadow-2xl active:bg-destructive-200 hover:bg-destructive-200 min-w-28"
+            className="w-16 h-16 rounded-full bg-red-600 hover:bg-red-700 transition-colors duration-150 flex items-center justify-center shadow-lg focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-50"
             onClick={() => handleDisconnect()}
           >
-            End
+            <PhoneOff className="text-white" size={24} />
           </button>
         )}
       </div>

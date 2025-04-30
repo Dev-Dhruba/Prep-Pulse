@@ -1,41 +1,33 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { Card } from './ui/card'
+import React, { useEffect, useRef, useState } from 'react';
+import { Card } from './ui/card';
 import { Button } from './ui/button';
-import { Mic, MicOff, Video, VideoOff } from "lucide-react";
+import { Mic, MicOff, Video, VideoOff } from 'lucide-react';
 
 const Candidate = () => {
+  const [isCameraOn, setIsCameraOn] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isMicOn, setIsMicOn] = useState(false);
+  const [ , setCurrentQuestion] = useState(0);
 
-const [isCameraOn, setIsCameraOn] = useState(false);
- const videoRef = useRef<HTMLVideoElement>(null);
- const [isMicOn, setIsMicOn] = useState(false);
- const [isRecording, setIsRecording] = useState(false);
- const [ , setCurrentQuestion] = useState(0);
-
-   useEffect(() => {
-     if (isCameraOn && videoRef.current) {
-       navigator.mediaDevices
-         .getUserMedia({ video: true })
-         .then((stream) => {
-           if (videoRef.current) {
-             videoRef.current.srcObject = stream;
-           }
-         })
-         .catch((err) => {
-           console.error("Error accessing camera:", err);
-           setIsCameraOn(false);
-         });
-     }
-   }, [isCameraOn]);
-
-   const startInterview = () => {
-    setIsRecording(true);
-    setCurrentQuestion(0);
-  };
+  useEffect(() => {
+    if (isCameraOn && videoRef.current) {
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
+        .then((stream) => {
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+        })
+        .catch((err) => {
+          console.error('Error accessing camera:', err);
+          setIsCameraOn(false);
+        });
+    }
+  }, [isCameraOn]);
 
   return (
-    <Card className="p-6 flex flex-col items-center bg-gray-800 text-white h-[500px]">
-      <h2 className="text-xl font-semibold mb-4">You</h2>
-      <div className="w-full aspect-video bg-gray-700 rounded-lg overflow-hidden relative mb-4">
+    <div className="flex flex-col items-center bg-card/95 text-white relative">
+      <div className="inset-0 min-h-[150px] w-full h-full bg-zinc-900 rounded-lg overflow-hidden">
         {isCameraOn ? (
           <video
             ref={videoRef}
@@ -44,16 +36,17 @@ const [isCameraOn, setIsCameraOn] = useState(false);
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <p className="text-gray-400">Camera is off</p>
+          <div className="w-full h-full justify-center">
+            <p className="text-gray-400 text-center p-8 ">Camera is off</p>
           </div>
         )}
       </div>
 
-      <div className="flex gap-4 mt-4">
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-4 z-10">
         <Button
           variant="outline"
           size="icon"
+          className="border-zinc-800 bg-zinc-700 hover:bg-zinc-600 text-white rounded-full p-3 shadow-md"
           onClick={() => setIsMicOn(!isMicOn)}
         >
           {isMicOn ? <Mic /> : <MicOff />}
@@ -61,23 +54,14 @@ const [isCameraOn, setIsCameraOn] = useState(false);
         <Button
           variant="outline"
           size="icon"
+          className="border-zinc-800 bg-zinc-700 hover:bg-zinc-600 text-white rounded-full p-3 shadow-md"
           onClick={() => setIsCameraOn(!isCameraOn)}
         >
           {isCameraOn ? <Video /> : <VideoOff />}
         </Button>
       </div>
+    </div>
+  );
+};
 
-      {!isRecording && (
-        <Button
-          onClick={startInterview}
-          className="mt-6 w-full bg-blue-600 text-white hover:bg-blue-700"
-          disabled={!isCameraOn}
-        >
-          Start Interview
-        </Button>
-      )}
-    </Card>
-  )
-}
-
-export default Candidate
+export default Candidate;

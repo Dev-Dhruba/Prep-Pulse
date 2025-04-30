@@ -62,9 +62,9 @@ export default function Navbar() {
           {[
             { href: "/", label: "Home" },
             { href: "/interview", label: "Interview" },
-            { href: "/customize", label: "Customize" },
-            { href: "/feedback", label: "Feedback" },
+            { href: "/my-interviews", label: "my intu" },
             { href: "/pricing", label: "Pricing" }, 
+            { href: "/profile", label: "profile" },
           ].map((link) => (
             <Link
               key={link.href}
