@@ -13,6 +13,7 @@ import * as THREE from "three";
 import { getVisemeData } from "@/utils/functions/tts";
 import { interviewer } from "./constants";
 import { Phone, PhoneOff } from "lucide-react";
+import { createFeedback } from "@/utils/actions";
 
 
 // Camera control component to look at the model's face
@@ -211,11 +212,12 @@ const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) =
       // console.log("Generate feedback here");
       // console.log(messages);
 
-      const { success, id } = {
-        success: "true",
-        id: "feedback-id",
-      };
-
+      const {success, feedbackId: id} = await createFeedback({
+        interviewId: interviewId!,
+        userId: userId!,
+        transcript: messages
+      })
+   
       if (success && id) {
         router.push(`/interview/${interviewId}/feedback`);
       } else {
