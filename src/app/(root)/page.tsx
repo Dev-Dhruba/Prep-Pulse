@@ -45,13 +45,13 @@ export default function Home() {
                       Start Interview <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
-                  <Link href="/customize">
+                  <Link href="/my-interviews">
                     <Button
                       size="lg"
                       variant="outline"
                       className="rounded-full border-cosmic-blue text-cosmic-blue hover:bg-cosmic-blue/10"
                     >
-                      Customize Experience
+                      Explore Interviews
                     </Button>
                   </Link>
                 </div>

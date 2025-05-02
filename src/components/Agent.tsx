@@ -229,7 +229,7 @@ const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) =
   useEffect(() => {
     if (callStatus === CallStatus.FINISHED) {
       if (type === "generate") {
-        router.push("/");
+        router.push("/my-interviews");
       } else {
         handleGenerateFeedback(messages);
       }

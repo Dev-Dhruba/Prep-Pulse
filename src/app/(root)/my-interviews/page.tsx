@@ -1,105 +1,20 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock, Code2, Eye, Play, Trash2, User2 } from "lucide-react"
-import Link from "next/link"
-
-// Mock data for interviews
-const recentInterviews = [
-  {
-    id: "int-001",
-    role: "Senior Frontend Developer",
-    company: "Tech Innovations Inc.",
-    techStack: ["React", "TypeScript", "Next.js", "Tailwind CSS"],
-    description: "Technical interview focusing on React performance optimization and state management",
-    date: "May 1, 2025",
-    time: "2:30 PM",
-    duration: "45 min",
-    score: 87,
-    status: "completed",
-  },
-  {
-    id: "int-002",
-    role: "Full Stack Engineer",
-    company: "DataVerse Solutions",
-    techStack: ["Node.js", "Express", "MongoDB", "React"],
-    description: "Full stack role with emphasis on API design and database optimization",
-    date: "April 29, 2025",
-    time: "10:15 AM",
-    duration: "60 min",
-    status: "in-progress",
-  },
-  {
-    id: "int-003",
-    role: "UI/UX Developer",
-    company: "Creative Minds",
-    techStack: ["Figma", "React", "CSS", "JavaScript"],
-    description: "Focus on responsive design principles and accessibility standards",
-    date: "April 27, 2025",
-    time: "3:45 PM",
-    duration: "30 min",
-    score: 92,
-    status: "completed",
-  },
-]
-
-const previousInterviews = [
-  {
-    id: "int-004",
-    role: "Backend Engineer",
-    company: "Cloud Systems",
-    techStack: ["Python", "Django", "PostgreSQL", "Docker"],
-    description: "System design and database optimization for scalable applications",
-    date: "April 15, 2025",
-    time: "11:00 AM",
-    duration: "60 min",
-    score: 78,
-    status: "completed",
-  },
-  {
-    id: "int-005",
-    role: "DevOps Engineer",
-    company: "Infinity Cloud",
-    techStack: ["Kubernetes", "AWS", "Terraform", "CI/CD"],
-    description: "Infrastructure as code and deployment pipeline optimization",
-    date: "April 10, 2025",
-    time: "2:00 PM",
-    duration: "45 min",
-    score: 81,
-    status: "completed",
-  },
-  {
-    id: "int-006",
-    role: "Mobile Developer",
-    company: "AppSphere",
-    techStack: ["React Native", "TypeScript", "Firebase", "Redux"],
-    description: "Cross-platform mobile development with focus on performance",
-    date: "March 28, 2025",
-    time: "9:30 AM",
-    duration: "40 min",
-    score: 85,
-    status: "completed",
-  },
-  {
-    id: "int-007",
-    role: "Data Engineer",
-    company: "DataFlow Analytics",
-    techStack: ["Python", "Spark", "Kafka", "AWS"],
-    description: "Big data processing and ETL pipeline design",
-    date: "March 15, 2025",
-    time: "1:15 PM",
-    duration: "50 min",
-    score: 79,
-    status: "completed",
-  },
-]
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation"; // Import useRouter
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Clock, Code2, Eye, Play, Trash2, User2 } from "lucide-react";
+import Link from "next/link";
+import { useAuth } from "@/utils/contexts/UserProvider";
+import { supabase } from "@/lib/supabase/supabase-client";
 
 // Interview card component
 function InterviewCard({ interview }: { interview: any }) {
+  const router = useRouter(); // Initialize the router
+
   return (
     <Card className="cosmic-card overflow-hidden transition-all duration-300 hover:shadow-[0_0_20px_rgba(59,158,255,0.2)] cosmic-glow">
       <div className="absolute top-0 left-0 right-0 h-1 cosmic-gradient-bg"></div>
@@ -129,7 +44,7 @@ function InterviewCard({ interview }: { interview: any }) {
           <div className="flex items-center text-sm text-gray-400">
             <Code2 className="mr-2 h-4 w-4 text-cosmic-purple" />
             <div className="flex flex-wrap gap-1">
-              {interview.techStack.map((tech: string, index: number) => (
+              {interview.techstack.map((tech: string, index: number) => (
                 <span
                   key={index}
                   className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-cosmic-dark border border-cosmic-purple/20"
@@ -187,16 +102,15 @@ function InterviewCard({ interview }: { interview: any }) {
           </>
         ) : (
           <>
-            <Link href={`/interview?id=${interview.id}`}>
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-cosmic-purple/20 text-cosmic-purple hover:bg-cosmic-purple/10"
-              >
-                <Play className="mr-1 h-4 w-4" />
-                Continue
-              </Button>
-            </Link>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-cosmic-purple/20 text-cosmic-purple hover:bg-cosmic-purple/10"
+              onClick={() => router.push(`/interview/${interview.id}`)} // Redirect on click
+            >
+              <Play className="mr-1 h-4 w-4" />
+              Continue
+            </Button>
             <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-300 hover:bg-red-500/10">
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -204,11 +118,35 @@ function InterviewCard({ interview }: { interview: any }) {
         )}
       </CardFooter>
     </Card>
-  )
+  );
 }
 
 export default function MyInterviewsPage() {
-  const [activeTab, setActiveTab] = useState("recent")
+  const { user } = useAuth();
+  const userId = user?.id ?? "unknown";
+
+  const [recentInterview, setRecentInterview] = useState<any | null>(null);
+  const [previousInterviews, setPreviousInterviews] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState("recent");
+
+  useEffect(() => {
+    const fetchInterviews = async () => {
+      const { data, error } = await supabase
+        .from("interviews")
+        .select("*")
+        .eq("userid", userId)
+        .order("created_at", { ascending: false }); // Order by creation date, latest first
+
+      if (error) {
+        console.error("Error fetching interviews:", error);
+      } else if (data && data.length > 0) {
+        setRecentInterview(data[0]); // Set the latest interview
+        setPreviousInterviews(data.slice(1)); // Set all other interviews
+      }
+    };
+
+    fetchInterviews();
+  }, [userId]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -233,7 +171,7 @@ export default function MyInterviewsPage() {
               value="recent"
               className="data-[state=active]:bg-cosmic-blue/20 data-[state=active]:text-cosmic-blue"
             >
-              Recent Interviews
+              Recent Interview
             </TabsTrigger>
             <TabsTrigger
               value="previous"
@@ -244,18 +182,14 @@ export default function MyInterviewsPage() {
           </TabsList>
 
           <TabsContent value="recent" className="space-y-6">
-            {recentInterviews.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {recentInterviews.map((interview) => (
-                  <InterviewCard key={interview.id} interview={interview} />
-                ))}
-              </div>
+            {recentInterview ? (
+              <InterviewCard interview={recentInterview} />
             ) : (
               <div className="text-center py-12">
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-cosmic-blue/10 mb-4">
                   <Calendar className="h-6 w-6 text-cosmic-blue" />
                 </div>
-                <h3 className="text-xl font-medium text-gray-200 mb-2">No recent interviews</h3>
+                <h3 className="text-xl font-medium text-gray-200 mb-2">No recent interview</h3>
                 <p className="text-gray-400 max-w-md mx-auto">
                   You haven't completed any interviews recently. Start a new interview to practice your skills.
                 </p>
@@ -280,7 +214,7 @@ export default function MyInterviewsPage() {
                 </div>
                 <h3 className="text-xl font-medium text-gray-200 mb-2">No previous interviews</h3>
                 <p className="text-gray-400 max-w-md mx-auto">
-                  Your interview history is empty. Complete some interviews to see them here.
+                  You haven't completed any interviews yet. Start a new interview to practice your skills.
                 </p>
                 <Link href="/interview" className="mt-4 inline-block">
                   <Button className="cosmic-button mt-4">Start New Interview</Button>
@@ -291,5 +225,5 @@ export default function MyInterviewsPage() {
         </Tabs>
       </div>
     </div>
-  )
+  );
 }
