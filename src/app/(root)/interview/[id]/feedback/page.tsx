@@ -8,7 +8,6 @@ import { useParams } from "next/navigation";
 import { getFeedbackByInterviewId } from "@/utils/actions";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase/supabase-client";
-import { Loader2 } from "lucide-react";
 import { feedbackSchema } from "@/components/constants";
 import type { z } from "zod";
 
