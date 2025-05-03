@@ -20,6 +20,23 @@ export async function getInterviewById(id: string) {
   return data;
 }
 
+// New server action to fetch feedback by interview ID
+export async function getFeedbackByInterviewId(interviewId: string) {
+  const { data, error } = await supabase
+    .from('feedback')
+    .select('*')
+    .eq('interviewId', interviewId)
+    .single();
+
+  if (error) {
+    console.error("Error fetching feedback:", error);
+    return null;
+  }
+
+  console.log("Feedback data from server:", data);
+  return data;
+}
+
 export async function createFeedback(params: CreateFeedbackParams) {
   const { interviewId, userId, transcript } = params;
   console.log(interviewId, userId, transcript)

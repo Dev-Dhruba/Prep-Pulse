@@ -2,30 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useParams } from "next/navigation";
+
+import { getFeedbackByInterviewId } from "@/utils/actions";
+import { Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase/supabase-client";
 import { Loader2 } from "lucide-react";
 import { feedbackSchema } from "@/components/constants";
 import type { z } from "zod";
-
-// Type for feedback data based on the schema
-type FeedbackData = z.infer<typeof feedbackSchema> & {
-  id: string;
-  interviewId: string;
-  userId: string;
-  createdAt: string;
-};
-
-// Static expression analysis data
-const expressionData = {
-  neutral: 45,
-  happy: 25,
-  confused: 15,
-  thoughtful: 10,
-  nervous: 5,
-};
 
 // Helper function to safely parse arrays
 const safelyParseArray = (data: any): string[] => {
@@ -42,86 +27,61 @@ const safelyParseArray = (data: any): string[] => {
   }
   return [];
 };
+// Static expression analysis data (as this isn't in our feedback schema)
+const expressionData = {
+  neutral: 45,
+  happy: 25,
+  confused: 15,
+  thoughtful: 10,
+  nervous: 5,
+};
 
-// Fallback data when arrays are empty or null
-const fallbackStrengths = [
-  "Basic understanding of TypeScript features (interfaces, enums, generics).",
-  "Recognition of the importance of type safety in larger projects.",
-  "Acknowledgement of improved collaboration through the use of TypeScript."
-];
-
-const fallbackAreasForImprovement = [
-  "Elaborate more on technical explanations.",
-  "Provide more specific examples from past projects.",
-  "Improve confidence and clarity in responses.",
-  "Engage more actively by asking questions about the role or company."
-];
 
 export default function FeedbackPage() {
   const params = useParams();
   const interviewId = params.id as string;
   
   const [loading, setLoading] = useState(true);
-  const [feedback, setFeedback] = useState<FeedbackData | null>(null);
+
+  const [feedback, setFeedback] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchFeedback() {
+    async function loadFeedback() {
       try {
         setLoading(true);
+        const feedbackData = await getFeedbackByInterviewId(interviewId);
         
-        // Fetch feedback from Supabase matching the interview ID
-        const { data, error } = await supabase
-          .from("feedback")
-          .select("*")
-          .eq("interviewId", interviewId)
-          .single();
-
-        if (error) {
-          throw error;
-        }
-
-        if (!data) {
+        if (!feedbackData) {
           throw new Error("No feedback found for this interview");
         }
+        
+        console.log("Received feedback data:", feedbackData);
+        
+        // Ensure arrays are properly parsed
+        const parsedData = {
+          ...feedbackData,
+          strengths: safelyParseArray(feedbackData.strengths),
+          areasForImprovement: safelyParseArray(feedbackData.areasForImprovement),
+          categoryScores: Array.isArray(feedbackData.categoryScores) 
+            ? feedbackData.categoryScores 
+            : []
+        };
+        
+        setFeedback(parsedData);
+      } catch (error) {
+        console.error("Error loading feedback:", error);
+        setError(error instanceof Error ? error.message : "Failed to load feedback");
 
-        console.log("Raw feedback data:", data);
-
-        // Ensure arrays are properly parsed (in case they're stored as JSON strings)
-        const strengths = safelyParseArray(data.strengths);
-        const areasForImprovement = safelyParseArray(data.areasForImprovement);
-
-        console.log("Parsed strengths:", strengths);
-        console.log("Parsed areas for improvement:", areasForImprovement);
-
-        // Validate the data against the schema
-        try {
-          // Create a validated data object with proper array handling
-          const validatedData = {
-            ...data,
-            totalScore: typeof data.totalScore === 'number' ? data.totalScore : 0,
-            categoryScores: Array.isArray(data.categoryScores) ? data.categoryScores : [],
-            strengths: strengths,
-            areasForImprovement: areasForImprovement,
-            finalAssessment: typeof data.finalAssessment === 'string' ? data.finalAssessment : '',
-          };
-          
-          console.log("Validated data:", validatedData);
-          setFeedback(validatedData as FeedbackData);
-        } catch (validationError) {
-          console.error("Validation error:", validationError);
-          setError("The feedback data format is invalid");
-        }
-      } catch (fetchError) {
-        console.error("Error fetching feedback:", fetchError);
-        setError(fetchError instanceof Error ? fetchError.message : "Failed to load feedback");
       } finally {
         setLoading(false);
       }
     }
 
     if (interviewId) {
-      fetchFeedback();
+
+      loadFeedback();
+
     }
   }, [interviewId]);
 
@@ -143,21 +103,29 @@ export default function FeedbackPage() {
     );
   }
 
-  // Use actual data or fallback if needed
-  const displayStrengths = feedback.strengths && feedback.strengths.length > 0 
-    ? feedback.strengths 
-    : fallbackStrengths;
+  // Create metrics object from categoryScores for the metrics tab
+  const metricsData = feedback.categoryScores.reduce((acc: any, category: any) => {
+    // Convert "Communication Skills" to "communicationSkills" for the object key
+    const key = category.name
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .split(' ')
+      .map((word: string, index: number) => 
+        index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)
+      )
+      .join('');
+    
+    acc[key] = category.score;
+    return acc;
+  }, {});
 
-  const displayAreasForImprovement = feedback.areasForImprovement && feedback.areasForImprovement.length > 0 
-    ? feedback.areasForImprovement 
-    : fallbackAreasForImprovement;
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8 text-center text-white">Interview Feedback</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {/* Overall Score Card */}
+
         <Card className="bg-gray-900 border border-gray-800 shadow-lg">
           <CardHeader className="pb-2 border-b border-gray-800">
             <CardTitle className="text-white">Overall Score</CardTitle>
@@ -196,31 +164,42 @@ export default function FeedbackPage() {
           </CardContent>
         </Card>
 
-        {/* Strengths Card */}
+
         <Card className="bg-gray-900 border border-gray-800 shadow-lg">
           <CardHeader className="pb-2 border-b border-gray-800">
             <CardTitle className="text-white">Key Strengths</CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
-            <ul className="list-disc pl-5 space-y-2 text-gray-300">
-              {displayStrengths.map((strength, index) => (
-                <li key={index} className="leading-relaxed">{strength}</li>
-              ))}
-            </ul>
+
+            {feedback.strengths && feedback.strengths.length > 0 ? (
+              <ul className="list-disc pl-5 space-y-2 text-gray-300">
+                {feedback.strengths.map((strength: string, index: number) => (
+                  <li key={index} className="leading-relaxed">{strength}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-300">No specific strengths identified.</p>
+            )}
           </CardContent>
         </Card>
 
-        {/* Areas for Improvement Card */}
+
         <Card className="bg-gray-900 border border-gray-800 shadow-lg">
           <CardHeader className="pb-2 border-b border-gray-800">
             <CardTitle className="text-white">Areas for Improvement</CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
-            <ul className="list-disc pl-5 space-y-2 text-gray-300">
-              {displayAreasForImprovement.map((improvement, index) => (
-                <li key={index} className="leading-relaxed">{improvement}</li>
-              ))}
-            </ul>
+
+            {feedback.areasForImprovement && feedback.areasForImprovement.length > 0 ? (
+              <ul className="list-disc pl-5 space-y-2 text-gray-300">
+                {feedback.areasForImprovement.map((improvement: string, index: number) => (
+                  <li key={index} className="leading-relaxed">{improvement}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-300">No areas for improvement identified.</p>
+            )}
+
           </CardContent>
         </Card>
       </div>
@@ -231,36 +210,37 @@ export default function FeedbackPage() {
           <CardTitle className="text-white">Final Assessment</CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
-          <p className="text-gray-300 leading-relaxed">
-            {feedback.finalAssessment || "The candidate shows promising skills but has areas to improve upon for future growth."}
-          </p>
+
+          <p className="text-gray-300 leading-relaxed">{feedback.finalAssessment}</p>
         </CardContent>
       </Card>
 
-      {/* Category Scores */}
-      <Tabs defaultValue="categories" className="w-full">
+      <Tabs defaultValue="metrics" className="w-full">
         <TabsList className="grid w-full grid-cols-2 bg-gray-800">
-          <TabsTrigger value="categories" className="data-[state=active]:bg-gray-700">Category Performance</TabsTrigger>
+          <TabsTrigger value="metrics" className="data-[state=active]:bg-gray-700">Performance Metrics</TabsTrigger>
           <TabsTrigger value="expressions" className="data-[state=active]:bg-gray-700">Expression Analysis</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="categories">
+        <TabsContent value="metrics">
           <Card className="bg-gray-900 border border-gray-800 shadow-lg">
             <CardHeader className="border-b border-gray-800">
-              <CardTitle className="text-white text-xl">Category Scores</CardTitle>
+              <CardTitle className="text-white text-xl">Performance Metrics</CardTitle>
+
               <CardDescription className="text-gray-400 text-base">
                 Detailed breakdown of your interview performance across key dimensions.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 pt-4">
               {feedback.categoryScores && feedback.categoryScores.length > 0 ? (
-                feedback.categoryScores.map((category, index) => (
+
+                feedback.categoryScores.map((category: any, index: number) => (
+
                   <div key={index} className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-gray-300 text-lg font-medium">{category.name}</span>
                       <span className="text-white text-lg font-bold">{category.score}%</span>
                     </div>
-                    {/* Custom progress bar implementation for better contrast */}
+
                     <div className="relative pt-1">
                       <div className="overflow-hidden h-3 text-xs flex rounded bg-gray-800 border border-gray-700">
                         <div 
@@ -312,7 +292,9 @@ export default function FeedbackPage() {
       </Tabs>
 
       <div className="mt-8 text-center text-gray-400 text-sm">
-        <p>Feedback generated on: {new Date(feedback.createdAt || Date.now()).toLocaleDateString()}</p>
+
+        <p>Feedback generated on: {new Date(feedback.createdAt).toLocaleDateString()}</p>
+
       </div>
     </div>
   );
