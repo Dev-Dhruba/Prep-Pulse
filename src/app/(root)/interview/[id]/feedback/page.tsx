@@ -4,8 +4,13 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useParams } from "next/navigation";
+
 import { getFeedbackByInterviewId } from "@/utils/actions";
 import { Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase/supabase-client";
+import { Loader2 } from "lucide-react";
+import { feedbackSchema } from "@/components/constants";
+import type { z } from "zod";
 
 // Helper function to safely parse arrays
 const safelyParseArray = (data: any): string[] => {
@@ -22,7 +27,6 @@ const safelyParseArray = (data: any): string[] => {
   }
   return [];
 };
-
 // Static expression analysis data (as this isn't in our feedback schema)
 const expressionData = {
   neutral: 45,
@@ -32,11 +36,13 @@ const expressionData = {
   nervous: 5,
 };
 
+
 export default function FeedbackPage() {
   const params = useParams();
   const interviewId = params.id as string;
   
   const [loading, setLoading] = useState(true);
+
   const [feedback, setFeedback] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -66,13 +72,16 @@ export default function FeedbackPage() {
       } catch (error) {
         console.error("Error loading feedback:", error);
         setError(error instanceof Error ? error.message : "Failed to load feedback");
+
       } finally {
         setLoading(false);
       }
     }
 
     if (interviewId) {
+
       loadFeedback();
+
     }
   }, [interviewId]);
 
@@ -110,11 +119,13 @@ export default function FeedbackPage() {
     return acc;
   }, {});
 
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8 text-center text-white">Interview Feedback</h1>
-
+      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+
         <Card className="bg-gray-900 border border-gray-800 shadow-lg">
           <CardHeader className="pb-2 border-b border-gray-800">
             <CardTitle className="text-white">Overall Score</CardTitle>
@@ -153,11 +164,13 @@ export default function FeedbackPage() {
           </CardContent>
         </Card>
 
+
         <Card className="bg-gray-900 border border-gray-800 shadow-lg">
           <CardHeader className="pb-2 border-b border-gray-800">
             <CardTitle className="text-white">Key Strengths</CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
+
             {feedback.strengths && feedback.strengths.length > 0 ? (
               <ul className="list-disc pl-5 space-y-2 text-gray-300">
                 {feedback.strengths.map((strength: string, index: number) => (
@@ -170,11 +183,13 @@ export default function FeedbackPage() {
           </CardContent>
         </Card>
 
+
         <Card className="bg-gray-900 border border-gray-800 shadow-lg">
           <CardHeader className="pb-2 border-b border-gray-800">
             <CardTitle className="text-white">Areas for Improvement</CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
+
             {feedback.areasForImprovement && feedback.areasForImprovement.length > 0 ? (
               <ul className="list-disc pl-5 space-y-2 text-gray-300">
                 {feedback.areasForImprovement.map((improvement: string, index: number) => (
@@ -184,6 +199,7 @@ export default function FeedbackPage() {
             ) : (
               <p className="text-gray-300">No areas for improvement identified.</p>
             )}
+
           </CardContent>
         </Card>
       </div>
@@ -194,6 +210,7 @@ export default function FeedbackPage() {
           <CardTitle className="text-white">Final Assessment</CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
+
           <p className="text-gray-300 leading-relaxed">{feedback.finalAssessment}</p>
         </CardContent>
       </Card>
@@ -208,18 +225,22 @@ export default function FeedbackPage() {
           <Card className="bg-gray-900 border border-gray-800 shadow-lg">
             <CardHeader className="border-b border-gray-800">
               <CardTitle className="text-white text-xl">Performance Metrics</CardTitle>
+
               <CardDescription className="text-gray-400 text-base">
                 Detailed breakdown of your interview performance across key dimensions.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 pt-4">
               {feedback.categoryScores && feedback.categoryScores.length > 0 ? (
+
                 feedback.categoryScores.map((category: any, index: number) => (
+
                   <div key={index} className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-gray-300 text-lg font-medium">{category.name}</span>
                       <span className="text-white text-lg font-bold">{category.score}%</span>
                     </div>
+
                     <div className="relative pt-1">
                       <div className="overflow-hidden h-3 text-xs flex rounded bg-gray-800 border border-gray-700">
                         <div 
@@ -271,7 +292,9 @@ export default function FeedbackPage() {
       </Tabs>
 
       <div className="mt-8 text-center text-gray-400 text-sm">
+
         <p>Feedback generated on: {new Date(feedback.createdAt).toLocaleDateString()}</p>
+
       </div>
     </div>
   );
