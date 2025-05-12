@@ -115,3 +115,14 @@ By combining **real-time intelligence**, **adaptive responses**, and **speech-sy
    git clone https://github.com/your-repo/prep-pulse.git
    cd prep-pulse
 
+2. install dependencies
+   ```
+   npm install
+   ```
+
+3. Run the development server
+   ```
+   npm run dev
+   ```
+
+4. Open http://localhost:3000 in your browser
