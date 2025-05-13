@@ -6,6 +6,7 @@ import { Check, Sparkles, Star, Coins } from "lucide-react"
 import PaymentModal from "./PaymentModal"
 import { useState } from "react"
 import { toast } from "sonner"
+import PricingCard from "./pricing-cards"
 
 // Define plan types and their prices
 interface Plan {

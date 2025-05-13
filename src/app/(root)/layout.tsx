@@ -25,7 +25,7 @@ export default function RootLayout({
         </head>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark">
-          <div className="star-bg min-h-screen">
+          <div className=" min-h-screen">
             <UserProvider>
             <Navbar />
             {children}
