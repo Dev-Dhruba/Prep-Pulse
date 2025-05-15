@@ -35,6 +35,15 @@ Prep-Pulse integrates **Face Recognition** and **AI Models** to analyze the cand
 
 ---
 
+### 4. **Intelligent Customization**
+Prep-Pulse offers **Intelligent Customization** during the interview setup process. This ensures that the interview is tailored to the candidate's preferences and job role while maintaining accuracy and relevance.
+
+- **Error Detection in Responses**: If the candidate provides random or irrelevant answers during the customization process, the **Vapi AI Agent** detects it and reasks the question to ensure the interview is set up correctly.
+- **Dynamic Adaptation**: The agent dynamically adjusts its questions to clarify and rectify any inconsistencies in the candidate's responses.
+- **Seamless Experience**: This feature ensures that the interview setup is accurate and personalized, providing a smooth and efficient experience.
+
+---
+
 ## 🛠️ How It Works
 
 1. **Login to the Platform**:
@@ -43,6 +52,7 @@ Prep-Pulse integrates **Face Recognition** and **AI Models** to analyze the cand
 2. **Interact with the Vapi AI Agent**:
    - The **Vapi AI Agent** interacts with you to customize your interview experience.
    - It uses **Gemini AI** to generate a tailored interview based on your preferences, job role, and skill level.
+   - **Intelligent Customization**: If you provide random or irrelevant answers during customization, the agent detects it and reasks the question to rectify it.
 
 3. **Select a Previously Generated Interview**:
    - After the interview is generated, you are redirected to a page where you can view and select from previously generated interviews.
