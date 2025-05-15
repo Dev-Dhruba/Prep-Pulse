@@ -112,7 +112,7 @@ By combining **real-time intelligence**, **adaptive responses**, and **speech-sy
 ### Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-repo/prep-pulse.git
+   git clone https://github.com/Dev-Dhruba/Prep-Pulse.git
    cd prep-pulse
 
 2. install dependencies
