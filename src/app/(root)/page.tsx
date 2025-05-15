@@ -25,7 +25,8 @@ const SplineLoader = ({ scene }) => {
       fallback={
         <div className="flex items-center justify-center w-full h-full">
           <div className="flex flex-col items-center justify-center space-y-4">
-            <Loader2 className="h-16 w-16 text-gray-500 animate-spin" />
+            <Loader2 className="h-16 w-16 text-blue-400 animate-spin" />
+            <p className="text-blue-400 text-sm">Loading 3D model...</p>
           </div>
         </div>
       }
@@ -44,39 +45,60 @@ export default function Home() {
     }
   }, [])
 
-  // Parallax items for the hero section
+  // Updated parallaxItems with reliable local image paths
   const parallaxItems = [
     {
       title: "Technical Interviews",
       link: "#",
-      thumbnail: "/placeholder.svg?height=600&width=800",
+      thumbnail: "https://images.unsplash.com/photo-1556155092-8707de31f9c4?auto=format&fit=crop&w=800&q=80",
     },
     {
       title: "Behavioral Questions",
       link: "#",
-      thumbnail: "/placeholder.svg?height=600&width=800",
+      thumbnail: "https://images.unsplash.com/photo-1556155092-8707de31f9c4?auto=format&fit=crop&w=800&q=80",
     },
     {
       title: "System Design",
       link: "#",
-      thumbnail: "/placeholder.svg?height=600&width=800",
+      thumbnail: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80",
+    },
+    {
+      title: "System Design",
+      link: "#",
+      thumbnail: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80",
+    },
+    {
+      title: "System Design",
+      link: "#",
+      thumbnail: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80",
     },
     {
       title: "Coding Challenges",
       link: "#",
-      thumbnail: "/placeholder.svg?height=600&width=800",
+      thumbnail: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
+    },
+    {
+      title: "Coding Challenges",
+      link: "#",
+      thumbnail: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
+    },
+    {
+      title: "Coding Challenges",
+      link: "#",
+      thumbnail: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
     },
     {
       title: "Mock Interviews",
       link: "#",
-      thumbnail: "/placeholder.svg?height=600&width=800",
+      thumbnail: "https://images.unsplash.com/photo-1556155092-8707de31f9c4?auto=format&fit=crop&w=800&q=80",
     },
     {
       title: "Performance Analysis",
       link: "#",
-      thumbnail: "/placeholder.svg?height=600&width=800",
+      thumbnail: "https://images.unsplash.com/photo-1556155092-8707de31f9c4?auto=format&fit=crop&w=800&q=80",
     },
-  ]
+  ];
+  
 
   return (
     <div className="flex flex-col min-h-screen bg-black text-white overflow-hidden">
@@ -115,42 +137,6 @@ export default function Home() {
                     Watch Demo
                   </Button>
                 </div>
-
-                {/* <div className="flex items-center space-x-4 pt-4">
-                  <div className="flex -space-x-2">
-                    <AnimatedTooltip
-                      items={[
-                        {
-                          id: 1,
-                          name: "John Doe",
-                          designation: "Software Engineer",
-                          image: "/placeholder.svg?height=100&width=100",
-                        },
-                        {
-                          id: 2,
-                          name: "Sarah Smith",
-                          designation: "Product Manager",
-                          image: "/placeholder.svg?height=100&width=100",
-                        },
-                        {
-                          id: 3,
-                          name: "Michael Brown",
-                          designation: "Data Scientist",
-                          image: "/placeholder.svg?height=100&width=100",
-                        },
-                        {
-                          id: 4,
-                          name: "Emily Johnson",
-                          designation: "UX Designer",
-                          image: "/placeholder.svg?height=100&width=100",
-                        },
-                      ]}
-                    />
-                  </div>
-                  <div className="text-sm text-neutral-400">
-                    <span className="text-white font-medium">4,000+</span> students aced their interviews
-                  </div>
-                </div> */}
               </div>
 
               <div className="relative h-[400px] md:h-[500px] lg:h-[600px] w-full">
@@ -213,8 +199,7 @@ export default function Home() {
           </div>
         </section>
         {/* How It Works Section */}
-        <section id="how-it-works" className="w-full py-16 md:py-24 lg:py-32 relative">
-          {/* <WavyBackground className="w-full h-full absolute inset-0" colors={["#0f172a", "#000000"]} /> */}
+        <section id="how-it-works" className="w-full relative">
 
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="flex flex-col items-center justify-center space-y-4 text-center mb-16">
@@ -280,8 +265,8 @@ export default function Home() {
         </section>
 
         {/* Interview Types Section */}
-        <section className="w-full py-16 md:py-24 lg:py-32 relative">
-          <div className="container mx-auto px-4 md:px-6 relative z-10 mb-12">
+        <section className="w-full pb-4 relative">
+          <div className="container mx-auto px-4 md:px-6 relative z-10 mb-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <span className="px-3 py-1 text-xs font-medium bg-blue-500/10 text-blue-400 rounded-full">
                 Interview Types
@@ -297,7 +282,7 @@ export default function Home() {
         </section>
 
         {/* Testimonials Section */}
-        <section className="w-full py-16 md:py-24 lg:py-32 relative">
+        <section className="w-full pt-8 relative">
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
               <span className="px-3 py-1 text-xs font-medium bg-blue-500/10 text-blue-400 rounded-full">
