@@ -12,7 +12,6 @@ import { OauthSignin } from "@/utils/functions/signin-oauth"
 import { toast } from "sonner"
 import { motion } from "framer-motion"
 import { BackgroundBeams } from "@/components/ui/background-beams"
-import { SparklesCore } from "@/components/ui/sparkles"
 
 // Add Google icon component that properly accepts className
 const Google = ({ className }: { className?: string }) => (
@@ -107,19 +106,7 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-black p-4 md:p-6 relative overflow-hidden">
       <div className="absolute inset-0 w-full h-full">
-        <BackgroundBeams className="opacity-20" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <SparklesCore
-            id="tsparticlesfull"
-            background="transparent"
-            minSize={0.6}
-            maxSize={1.4}
-            particleDensity={70}
-            className="w-full h-full"
-            particleColor="#3b82f6"
-            speed={0.5}
-          />
-        </div>
+        <BackgroundBeams className="opacity-50" />
       </div>
 
       <div className="w-full max-w-md relative z-10">

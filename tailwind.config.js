@@ -88,6 +88,9 @@ export const theme = {
       float: "float 6s ease-in-out infinite",
       pulse: "pulse 3s ease-in-out infinite",
     },
+    fontFamily: {
+       angelos: ["Angelos"] ,
+      },
   },
 };
 export const plugins = [require("tailwindcss-animate")];

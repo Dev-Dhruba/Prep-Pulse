@@ -11,7 +11,6 @@ import { HoverEffect } from "@/components/ui/card-hover-effect"
 import { TextGenerateEffect } from "@/components/ui/text-generate-effect"
 import { TracingBeam } from "@/components/ui/tracing-beam"
 import { HeroParallax } from "@/components/ui/hero-parallax"
-import { WavyBackground } from "@/components/ui/wavy-background"
 import { features } from "@/utils/features"
 import { testimonials } from "@/utils/testimonials"
 
@@ -116,7 +115,7 @@ export default function Home() {
 
                 <TextGenerateEffect
                   words="Master Your Interviews with AI Coaching"
-                  className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight"
+                  className="text-8xl md:text-5xl lg:text-6xl font-bold leading-tight"
                 />
 
                 <p className="text-lg md:text-xl text-neutral-300 max-w-xl">
@@ -265,7 +264,7 @@ export default function Home() {
         </section>
 
         {/* Interview Types Section */}
-        <section className="w-full pb-4 relative">
+        <section className="w-full pb-4 py-16 md:py-24 relative">
           <div className="container mx-auto px-4 md:px-6 relative z-10 mb-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <span className="px-3 py-1 text-xs font-medium bg-blue-500/10 text-blue-400 rounded-full">

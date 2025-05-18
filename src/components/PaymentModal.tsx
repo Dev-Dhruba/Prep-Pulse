@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button"
 import { Coins, Wallet, ArrowRight, ExternalLink, AlertCircle, CheckCircle2 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
-import { BackgroundBeams } from "@/components/ui/background-beams"
+
 
 
 interface PaymentState {
@@ -175,9 +175,7 @@ export default function PaymentModal({ amount, onComplete, onClose }: PaymentMod
         overwrite: true,
       })
 
-      if (!signedXDR) throw new Error("Signing rejected or failed")
-
-      // Submit to network
+      if (!signedXDR) throw new Error("Signing rejected or failed")      // Submit to network
       const submitResponse = await fetch("/api/submit-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -186,7 +184,17 @@ export default function PaymentModal({ amount, onComplete, onClose }: PaymentMod
         }),
       })
 
-      if (!submitResponse.ok) throw new Error("Submission failed")
+      if (!submitResponse.ok) {
+        const errorData = await submitResponse.json();
+        console.error("Transaction submission error:", errorData);
+        
+        // Check for tx_too_late error
+        if (errorData.details?.extras?.result_codes?.transaction === "tx_too_late") {
+          throw new Error("Transaction expired before submission. Please try again and complete the signing within 30 minutes.");
+        } else {
+          throw new Error(errorData.error || "Transaction submission failed");
+        }
+      }
 
       setPaymentState((prev) => ({ ...prev, status: "success" }))
     } catch (error: any) {
@@ -251,9 +259,6 @@ export default function PaymentModal({ amount, onComplete, onClose }: PaymentMod
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="absolute inset-0 pointer-events-none">
-        <BackgroundBeams className="opacity-60" />
-      </div>
 
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
@@ -297,9 +302,13 @@ export default function PaymentModal({ amount, onComplete, onClose }: PaymentMod
                 <Coins className="h-5 w-5 text-blue-400" />
                 Stellar Payment
               </div>
-            </CardTitle>
-            <CardDescription className="text-neutral-400">
+            </CardTitle>            <CardDescription className="text-neutral-400">
               Connect your wallet to pay {Number.parseFloat(amount).toFixed(2)} XLM
+              {paymentState.status === "signing" && (
+                <div className="mt-1 text-blue-400 text-xs">
+                  Please sign the transaction in your Freighter wallet. You have 30 minutes to complete this step.
+                </div>
+              )}
             </CardDescription>
           </CardHeader>
 
