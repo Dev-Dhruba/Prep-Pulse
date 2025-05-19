@@ -277,7 +277,7 @@ const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) =
 
   return (
     <>
-      <div className="flex flex-col w-full">
+      <div className="flex flex-col w-full max-h-screen bg-black">
         {/* AI Interviewer Card - Full screen on larger viewports */}
         <div className="w-full h-full">
           <div className="w-full h-0 pb-[100%] sm:pb-[90vh] relative">
