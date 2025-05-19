@@ -63,8 +63,7 @@ export const theme = {
       lg: "var(--radius)",
       md: "calc(var(--radius) - 2px)",
       sm: "calc(var(--radius) - 4px)",
-    },
-    keyframes: {
+    },    keyframes: {
       "accordion-down": {
         from: { height: "0" },
         to: { height: "var(--radix-accordion-content-height)" },
@@ -76,18 +75,41 @@ export const theme = {
       float: {
         "0%, 100%": { transform: "translateY(0)" },
         "50%": { transform: "translateY(-10px)" },
+      },      floating: {
+        "0%": { transform: "translateY(0px) translateX(0px)" },
+        "25%": { transform: "translateY(-10px) translateX(5px)" },
+        "50%": { transform: "translateY(0px) translateX(10px)" },
+        "75%": { transform: "translateY(10px) translateX(5px)" },
+        "100%": { transform: "translateY(0px) translateX(0px)" },
+      },      blob: {
+        "0%": { transform: "translate(0px, 0px) scale(1)" },
+        "33%": { transform: "translate(30px, -20px) scale(1.1)" },
+        "66%": { transform: "translate(-20px, 20px) scale(0.9)" },
+        "100%": { transform: "translate(0px, 0px) scale(1)" },
+      },
+      gradient: {
+        "0%": { backgroundPosition: "0% 50%" },
+        "50%": { backgroundPosition: "100% 50%" },
+        "100%": { backgroundPosition: "0% 50%" },
       },
       pulse: {
         "0%, 100%": { opacity: "1" },
         "50%": { opacity: "0.5" },
       },
-    },
-    animation: {
+    },    animation: {
       "accordion-down": "accordion-down 0.2s ease-out",
       "accordion-up": "accordion-up 0.2s ease-out",
       float: "float 6s ease-in-out infinite",
+      floating: "floating 12s ease-in-out infinite",      blob: "blob 7s infinite",
+      "blob-slow": "blob 10s infinite",
+      "blob-delay": "blob 12s infinite 2s",
+      gradient: "gradient 15s ease infinite",
       pulse: "pulse 3s ease-in-out infinite",
     },
+    fontFamily: {
+       angelos: ["Angelos"] ,
+       milker: ["Milker"] ,
+      },
   },
 };
 export const plugins = [require("tailwindcss-animate")];

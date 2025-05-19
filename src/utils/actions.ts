@@ -4,6 +4,7 @@ import { feedbackSchema } from '@/components/constants';
 import { supabase } from '../lib/supabase/supabase-client'
 import { generateObject } from 'ai';
 import { google } from '@ai-sdk/google';
+import { CollisionsOverlap } from '@tsparticles/engine';
 
 export async function getInterviewById(id: string) {
   const { data, error } = await supabase
@@ -26,7 +27,7 @@ export async function getFeedbackByInterviewId(interviewId: string) {
     .from('feedback')
     .select('*')
     .eq('interviewId', interviewId)
-    .single();
+    .order('createdAt', { ascending: false });
 
   if (error) {
     console.error("Error fetching feedback:", error);
@@ -34,7 +35,8 @@ export async function getFeedbackByInterviewId(interviewId: string) {
   }
 
   console.log("Feedback data from server:", data);
-  return data;
+  // Return the most recent feedback (first in the array) or null if no feedback exists
+  return data.length > 0 ? data[0] : null;
 }
 
 export async function createFeedback(params: CreateFeedbackParams) {
@@ -99,3 +101,6 @@ export async function createFeedback(params: CreateFeedbackParams) {
 }
 
 
+
+
+// http://localhost:3000/interview/0382b1a2-a022-4d97-9f83-ca7ff64c0d0d/feedback
