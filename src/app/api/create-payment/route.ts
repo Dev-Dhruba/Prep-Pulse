@@ -55,8 +55,9 @@ export async function POST(req: Request) {
           asset: StellarSdk.Asset.native(),
           amount: amount.toString(),
         })
-      )      .addMemo(StellarSdk.Memo.text('Payment from Prep-Pulse'))
-      .setTimeout(1800) // Extended from 300 to 1800 seconds (30 minutes) to give more time for signing
+      )
+      .addMemo(StellarSdk.Memo.text('Payment from Prep-Pulse'))
+      .setTimeout(300)
       .build();
       tx.networkId = StellarSdk.hash(Buffer.from(StellarSdk.Networks.TESTNET));
 

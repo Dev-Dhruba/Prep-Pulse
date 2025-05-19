@@ -18,18 +18,12 @@ export async function POST(request: Request) {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ tx: signedXDR }),
-    });    const payload = await res.json();
-    console.log("Horizon response:", payload);
-    
+    });
+    const payload = await res.json();
+    console.log("payload",payload)
+
     // 3) Handle Horizon errors
     if (!res.ok) {
-      // Log detailed error information
-      if (payload.extras?.result_codes) {
-        console.error("Transaction error codes:", {
-          transaction: payload.extras.result_codes.transaction,
-          operations: payload.extras.result_codes.operations
-        });
-      }
       return NextResponse.json(
         {
           error:    payload.title   || 'Transaction submission failed',
