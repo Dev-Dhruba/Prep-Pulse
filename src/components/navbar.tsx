@@ -77,7 +77,7 @@ export default function Navbar() {
               <Brain className="h-4 w-4 text-blue-400" />
             </div>
           </div>
-          <span className="text-xl font-bold">InterviewAI</span>
+          <span className="text-xl font-bold">Prep-Pulse</span>
         </Link>
 
         <nav className="ml-auto hidden gap-6 mr-4 md:flex">

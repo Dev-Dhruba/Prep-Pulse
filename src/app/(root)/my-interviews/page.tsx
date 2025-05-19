@@ -48,8 +48,7 @@ function InterviewCard({ interview, onViewDetails }: { interview: Interview; onV
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-blue-400"></div>
         <CardHeader className="pb-2">
           <div className="flex justify-between items-start">
-            <div>
-              <CardTitle className="text-lg text-blue-400">{interview.role}</CardTitle>
+            <div>              <CardTitle className="text-lg text-blue-400 font-milker">{interview.role}</CardTitle>
               <CardDescription className="text-neutral-400">{interview.company || "No company"}</CardDescription>
             </div>
             <Badge
@@ -203,8 +202,7 @@ function InterviewDetailsModal({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[600px] bg-black border-neutral-800">
-        <DialogHeader>
-          <DialogTitle className="text-xl text-blue-400 flex items-center gap-2">
+        <DialogHeader>          <DialogTitle className="text-xl text-blue-400 flex items-center gap-2 font-milker">
             <Info className="h-5 w-5" />
             Interview Details
           </DialogTitle>
@@ -240,8 +238,7 @@ function InterviewDetailsModal({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <h3 className="text-md font-medium text-blue-400">Questions</h3>
+          <div className="space-y-2">            <h3 className="text-md font-medium text-blue-400 font-milker">Questions</h3>
             <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
               {interview.questions && interview.questions.length > 0 ? (
                 interview.questions.map((question, index) => (
@@ -271,8 +268,7 @@ function InterviewDetailsModal({
           </div>
 
           {interview.status === "completed" && interview.score !== undefined && (
-            <div className="space-y-2">
-              <h3 className="text-md font-medium text-blue-400">Performance</h3>
+            <div className="space-y-2">              <h3 className="text-md font-medium text-blue-400 font-milker">Performance</h3>
               <div className="p-3 bg-neutral-900/50 rounded-lg border border-neutral-800">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-neutral-400">Overall Score</span>
@@ -310,8 +306,7 @@ function EmptyState({ type, onNewInterview }: { type: string; onNewInterview: ()
     <div className="text-center py-12">
       <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-500/10 mb-4">
         <Calendar className="h-6 w-6 text-blue-400" />
-      </div>
-      <h3 className="text-xl font-medium text-white mb-2">No {type} interviews</h3>
+      </div>      <h3 className="text-xl font-medium text-white mb-2 font-milker">No {type} interviews</h3>
       <p className="text-neutral-400 max-w-md mx-auto">
         You haven't completed any {type} interviews yet. Start a new interview to practice your skills.
       </p>
@@ -387,8 +382,7 @@ export default function MyInterviewsPage() {
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full flex">
            
           <div className="overflow-x-auto hide-scrollbar mb-6">
-            <TabsList className="bg-neutral-900 border border-neutral-800 inline-flex">
-              <TabsTrigger value="recent" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsList className="bg-neutral-900 border border-neutral-800 inline-flex">              <TabsTrigger value="recent" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white ">
                 Recent
               </TabsTrigger>
               <TabsTrigger value="all" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
@@ -402,8 +396,7 @@ export default function MyInterviewsPage() {
               </TabsTrigger>
               <TabsTrigger value="react" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
                 React
-              </TabsTrigger>
-              <TabsTrigger value="java" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              </TabsTrigger>              <TabsTrigger value="java" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
                 Java
               </TabsTrigger>
               <TabsTrigger value="python" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">

@@ -130,8 +130,7 @@ export default function PricingPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
-        >
-          <h1 className="text-5xl font-bold mb-4">
+        >          <h1 className="text-5xl font-bold mb-4 font-milker">
             <TextGenerateEffect
               words="Choose Your Plan"
               className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-600"
@@ -205,8 +204,7 @@ export default function PricingPage() {
                     >
                       {plan.icon}
                     </div>
-                  </div>
-                  <CardTitle className="text-2xl font-bold text-center">{plan.name}</CardTitle>
+                  </div>                  <CardTitle className="text-2xl font-bold text-center font-milker">{plan.name}</CardTitle>
                   <p
                     className={`text-sm text-center mt-1 ${
                       plan.id === "free"
@@ -328,7 +326,7 @@ export default function PricingPage() {
           <div className="max-w-3xl mx-auto p-8 rounded-2xl border border-blue-500/20 bg-black/50 backdrop-blur-sm shadow-[0_0_25px_rgba(59,130,246,0.2)]">
             <h2 className="text-2xl font-bold mb-4">Ready to ace your next interview?</h2>
             <p className="text-neutral-400 mb-6">
-              Join thousands of successful candidates who landed their dream jobs with InterviewAI.
+              Join thousands of successful candidates who landed their dream jobs with Prep-Pulse.
             </p>
             <Button
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 rounded-full text-lg"

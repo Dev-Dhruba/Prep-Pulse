@@ -6,11 +6,9 @@ import { ArrowRight, Brain, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { checkSupabaseConnection } from "@/lib/supabase/Utils"
 import { BackgroundBeams } from "@/components/ui/background-beams"
-import { SparklesCore } from "@/components/ui/sparkles"
 import { HoverEffect } from "@/components/ui/card-hover-effect"
 import { TextGenerateEffect } from "@/components/ui/text-generate-effect"
 import { TracingBeam } from "@/components/ui/tracing-beam"
-import { HeroParallax } from "@/components/ui/hero-parallax"
 import { features } from "@/utils/features"
 import { testimonials } from "@/utils/testimonials"
 
@@ -43,87 +41,38 @@ export default function Home() {
       checkSupabaseConnection()
     }
   }, [])
-
-  // Updated parallaxItems with reliable local image paths
-  const parallaxItems = [
-    {
-      title: "Technical Interviews",
-      link: "#",
-      thumbnail: "https://images.unsplash.com/photo-1556155092-8707de31f9c4?auto=format&fit=crop&w=800&q=80",
-    },
-    {
-      title: "Behavioral Questions",
-      link: "#",
-      thumbnail: "https://images.unsplash.com/photo-1556155092-8707de31f9c4?auto=format&fit=crop&w=800&q=80",
-    },
-    {
-      title: "System Design",
-      link: "#",
-      thumbnail: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80",
-    },
-    {
-      title: "System Design",
-      link: "#",
-      thumbnail: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80",
-    },
-    {
-      title: "System Design",
-      link: "#",
-      thumbnail: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80",
-    },
-    {
-      title: "Coding Challenges",
-      link: "#",
-      thumbnail: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
-    },
-    {
-      title: "Coding Challenges",
-      link: "#",
-      thumbnail: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
-    },
-    {
-      title: "Coding Challenges",
-      link: "#",
-      thumbnail: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
-    },
-    {
-      title: "Mock Interviews",
-      link: "#",
-      thumbnail: "https://images.unsplash.com/photo-1556155092-8707de31f9c4?auto=format&fit=crop&w=800&q=80",
-    },
-    {
-      title: "Performance Analysis",
-      link: "#",
-      thumbnail: "https://images.unsplash.com/photo-1556155092-8707de31f9c4?auto=format&fit=crop&w=800&q=80",
-    },
-  ];
   
 
   return (
     <div className="flex flex-col min-h-screen bg-black text-white overflow-hidden">
-      <main className="flex-1 pt-24">
-        {/* Hero Section */}
-        <section className="w-full py-16 md:py-24 lg:py-32 relative" ref={heroRef}>
+      <main className="flex-1">        {/* Hero Section */}
+        <section className="w-full py-16 md:py-24 lg:py-32 relative overflow-hidden" ref={heroRef}>
           <BackgroundBeams className="opacity-20" />
+          
+          {/* Subtle animated gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-950/30 via-black to-purple-950/20 animate-gradient opacity-80"></div>
 
           <div className="container mx-auto px-4 md:px-6 relative z-10">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div className="flex flex-col space-y-6">
-                <span className="px-3 py-1 text-xs font-medium bg-blue-500/10 text-blue-400 rounded-full w-fit">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">              <div className="flex flex-col space-y-6 relative">
+                {/* Decorative blobs */}
+                <div className="absolute -top-24 -left-24 w-64 h-64 rounded-full bg-blue-600/15 blur-[100px] animate-blob-slow"></div>
+                <div className="absolute -bottom-16 right-8 w-48 h-48 rounded-full bg-purple-600/20 blur-[80px] animate-blob-delay"></div>
+                <div className="absolute top-20 -right-20 w-40 h-40 rounded-full bg-cyan-500/15 blur-[60px] animate-blob"></div>
+                  <span className="px-3 py-1 text-xs font-medium bg-blue-500/10 text-blue-400 rounded-full w-fit relative z-10">
                   AI-Powered Interview Practice
-                </span>
+                </span>                <div className="relative z-10">
+                  <TextGenerateEffect
+                    words="Master Your Interviews with AI Coaching"
+                    className="text-8xl md:text-5xl lg:text-6xl font-bold leading-tight font-milker relative z-10"
+                  />
+                </div>
 
-                <TextGenerateEffect
-                  words="Master Your Interviews with AI Coaching"
-                  className="text-8xl md:text-5xl lg:text-6xl font-bold leading-tight"
-                />
-
-                <p className="text-lg md:text-xl text-neutral-300 max-w-xl">
+                <p className="text-lg md:text-xl text-neutral-300 max-w-xl relative z-10">
                   Practice with our AI interviewer that adapts to your responses in real-time. Get personalized
                   feedback, improve your skills, and land your dream job.
                 </p>
 
-                <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex flex-col sm:flex-row gap-4 relative z-10">
                   <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 rounded-lg text-lg">
                     Start Practicing Now
                     <ArrowRight className="ml-2 h-5 w-5" />
@@ -136,11 +85,13 @@ export default function Home() {
                     Watch Demo
                   </Button>
                 </div>
-              </div>
-
-              <div className="relative h-[400px] md:h-[500px] lg:h-[600px] w-full">
-                <div className="absolute inset-0 bg-blue-500/10 rounded-2xl blur-3xl opacity-30"></div>
-                <div className="absolute inset-0 flex items-center justify-center">
+              </div>              <div className="relative h-[400px] md:h-[500px] lg:h-[600px] w-full">
+                {/* Additional decorative blobs for the right side */}
+                <div className="absolute -top-16 -right-16 w-72 h-72 rounded-full bg-blue-500/15 blur-[90px] animate-pulse" style={{ animationDuration: '15s' }}></div>
+                <div className="absolute top-1/2 -left-16 w-56 h-56 rounded-full bg-purple-500/10 blur-[80px] animate-pulse" style={{ animationDuration: '10s' }}></div>
+                <div className="absolute bottom-10 right-10 w-40 h-40 rounded-full bg-cyan-400/10 blur-[70px] animate-pulse" style={{ animationDuration: '7s' }}></div>
+                  <div className="absolute inset-0 bg-blue-500/10 rounded-2xl blur-3xl opacity-30"></div>
+                <div className="absolute inset-0 flex items-center justify-center animate-floating">
                   <SplineLoader scene="https://prod.spline.design/Sl5BVKi6MUgfA6xZ/scene.splinecode" />
                 </div>
               </div>
@@ -149,17 +100,16 @@ export default function Home() {
 
           {/* Stats Section */}
           <div className="container mx-auto px-4 md:px-6 mt-16">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-8 border-y border-neutral-800">
-              <div className="flex flex-col items-center text-center">
-                <h3 className="text-3xl md:text-4xl font-bold text-blue-400">98%</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-8 border-y border-neutral-800">              <div className="flex flex-col items-center text-center">
+                <h3 className="text-3xl md:text-4xl font-bold text-blue-400 font-milker">98%</h3>
                 <p className="text-neutral-400 mt-2">Improved interview confidence</p>
               </div>
               <div className="flex flex-col items-center text-center">
-                <h3 className="text-3xl md:text-4xl font-bold text-blue-400">200+</h3>
+                <h3 className="text-3xl md:text-4xl font-bold text-blue-400 font-milker">200+</h3>
                 <p className="text-neutral-400 mt-2">Interview scenarios</p>
               </div>
               <div className="flex flex-col items-center text-center">
-                <h3 className="text-3xl md:text-4xl font-bold text-blue-400">75%</h3>
+                <h3 className="text-3xl md:text-4xl font-bold text-blue-400 font-milker">75%</h3>
                 <p className="text-neutral-400 mt-2">Higher job offer rate</p>
               </div>
             </div>
@@ -168,26 +118,13 @@ export default function Home() {
 
         {/* Features Section */}
         <section id="features" className="w-full py-16 md:py-24 lg:py-32 relative">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <SparklesCore
-              id="tsparticlesfull"
-              background="transparent"
-              minSize={0.6}
-              maxSize={1.4}
-              particleDensity={100}
-              className="w-full h-full"
-              particleColor="#3b82f6"
-              speed={1}
-            />
-          </div>
 
           <div className="container mx-auto px-4 md:px-6 relative z-10">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-              <span className="px-3 py-1 text-xs font-medium bg-blue-500/10 text-blue-400 rounded-full">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">              <span className="px-3 py-1 text-xs font-medium bg-blue-500/10 text-blue-400 rounded-full">
                 Powerful Features
               </span>
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                Everything You Need to Ace Your Interviews
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl font-milker">
+                <TextGenerateEffect words="Everything You Need to Ace Your Interviews" />
               </h2>
               <p className="max-w-[800px] text-neutral-400 md:text-xl">
                 Our platform combines cutting-edge AI with proven interview techniques to help you succeed
@@ -201,11 +138,12 @@ export default function Home() {
         <section id="how-it-works" className="w-full relative">
 
           <div className="container mx-auto px-4 md:px-6 relative z-10">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-16">
-              <span className="px-3 py-1 text-xs font-medium bg-blue-500/10 text-blue-400 rounded-full">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-16">              <span className="px-3 py-1 text-xs font-medium bg-blue-500/10 text-blue-400 rounded-full">
                 Simple Process
               </span>
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">How InterviewAI Works</h2>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl font-milker">
+                <TextGenerateEffect words="How Prep-Pulse Works" />
+              </h2>
               <p className="max-w-[800px] text-neutral-400 md:text-xl">
                 Get started in minutes and begin improving your interview skills today
               </p>
@@ -213,12 +151,11 @@ export default function Home() {
 
             <TracingBeam className="px-6">
               <div className="max-w-2xl mx-auto">
-                <div className="mb-12">
-                  <h3 className="text-2xl font-bold mb-4 flex items-center">
+                <div className="mb-12">                  <h3 className="text-2xl font-bold mb-4 flex items-center font-milker">
                     <span className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold mr-3">
                       1
                     </span>
-                    Choose Your Interview
+                    <TextGenerateEffect words="Choose Your Interview" />
                   </h3>
                   <p className="text-neutral-300">
                     Select from various interview types like System Design, Behavioral, or create your own custom
@@ -226,12 +163,11 @@ export default function Home() {
                   </p>
                 </div>
 
-                <div className="mb-12">
-                  <h3 className="text-2xl font-bold mb-4 flex items-center">
+                <div className="mb-12">                  <h3 className="text-2xl font-bold mb-4 flex items-center font-milker">
                     <span className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold mr-3">
                       2
                     </span>
-                    Practice with AI
+                    <TextGenerateEffect words="Practice with AI" />
                   </h3>
                   <p className="text-neutral-300">
                     Engage in a realistic interview with our AI interviewer that responds to your answers in real-time.
@@ -239,12 +175,11 @@ export default function Home() {
                   </p>
                 </div>
 
-                <div className="mb-12">
-                  <h3 className="text-2xl font-bold mb-4 flex items-center">
+                <div className="mb-12">                  <h3 className="text-2xl font-bold mb-4 flex items-center font-milker">
                     <span className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold mr-3">
                       3
                     </span>
-                    Get Detailed Feedback
+                    <TextGenerateEffect words="Get Detailed Feedback" />
                   </h3>
                   <p className="text-neutral-300">
                     Receive comprehensive analysis and actionable insights to improve your performance. Our AI evaluates
@@ -263,33 +198,18 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Interview Types Section */}
-        <section className="w-full pb-4 py-16 md:py-24 relative">
-          <div className="container mx-auto px-4 md:px-6 relative z-10 mb-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <span className="px-3 py-1 text-xs font-medium bg-blue-500/10 text-blue-400 rounded-full">
-                Interview Types
-              </span>
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Prepare for Any Interview</h2>
-              <p className="max-w-[800px] text-neutral-400 md:text-xl">
-                Our platform covers all types of interviews you might encounter
-              </p>
-            </div>
-          </div>
-
-          <HeroParallax products={parallaxItems} />
-        </section>
 
         {/* Testimonials Section */}
         <section className="w-full pt-8 relative">
           <div className="container mx-auto px-4 md:px-6 relative z-10">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-              <span className="px-3 py-1 text-xs font-medium bg-blue-500/10 text-blue-400 rounded-full">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">              <span className="px-3 py-1 text-xs font-medium bg-blue-500/10 text-blue-400 rounded-full">
                 Success Stories
               </span>
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">What Our Users Say</h2>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl font-milker">
+                <TextGenerateEffect words="What Our Users Say" />
+              </h2>
               <p className="max-w-[800px] text-neutral-400 md:text-xl">
-                Join thousands of successful job seekers who improved their interview skills with InterviewAI
+                Join thousands of successful job seekers who improved their interview skills with Prep-Pulse
               </p>
             </div>
 
@@ -342,9 +262,11 @@ export default function Home() {
             <div className="max-w-4xl mx-auto bg-neutral-900/50 p-8 md:p-12 rounded-2xl border border-neutral-800 backdrop-blur-sm">
               <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                 <div className="flex-1">
-                  <h2 className="text-2xl md:text-3xl font-bold mb-4">Ready to Ace Your Next Interview?</h2>
+                  <h2 className="text-2xl md:text-3xl font-bold mb-4 font-milker">
+                    <TextGenerateEffect words="Ready to Ace Your Next Interview?" />
+                  </h2>
                   <p className="text-neutral-300">
-                    Join thousands of successful candidates who landed their dream jobs with InterviewAI.
+                    Join thousands of successful candidates who landed their dream jobs with Prep-Pulse.
                   </p>
                 </div>
                 <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 rounded-lg text-lg whitespace-nowrap">
@@ -370,15 +292,14 @@ export default function Home() {
                     <Brain className="h-4 w-4 text-blue-400" />
                   </div>
                 </div>
-                <span className="font-bold text-xl">InterviewAI</span>
+                <span className="font-bold text-xl">Prep-Pulse</span>
               </Link>
               <p className="text-sm text-neutral-400">
                 AI-powered interview preparation platform helping job seekers land their dream roles.
               </p>
             </div>
 
-            <div>
-              <h3 className="font-medium mb-4">Product</h3>
+            <div>              <h3 className="font-medium mb-4 font-milker">Product</h3>
               <ul className="space-y-2">
                 <li>
                   <Link href="#features" className="text-sm text-neutral-400 hover:text-white transition-colors">
@@ -403,8 +324,7 @@ export default function Home() {
               </ul>
             </div>
 
-            <div>
-              <h3 className="font-medium mb-4">Resources</h3>
+            <div>              <h3 className="font-medium mb-4 font-milker">Resources</h3>
               <ul className="space-y-2">
                 <li>
                   <Link href="#" className="text-sm text-neutral-400 hover:text-white transition-colors">
@@ -430,7 +350,7 @@ export default function Home() {
             </div>
 
             <div>
-              <h3 className="font-medium mb-4">Company</h3>
+              <h3 className="font-medium mb-4 font-milker">Company</h3>
               <ul className="space-y-2">
                 <li>
                   <Link href="#" className="text-sm text-neutral-400 hover:text-white transition-colors">
@@ -457,7 +377,7 @@ export default function Home() {
           </div>
 
           <div className="pt-8 border-t border-neutral-800 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-sm text-neutral-500">© 2024 InterviewAI. All rights reserved.</p>
+            <p className="text-sm text-neutral-500">© 2025 Prep-Pulse. All rights reserved.</p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link href="#" className="text-neutral-400 hover:text-white transition-colors">
                 <span className="sr-only">Twitter</span>

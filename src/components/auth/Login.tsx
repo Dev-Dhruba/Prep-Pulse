@@ -115,7 +115,7 @@ export default function LoginPage() {
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-blue-400 to-blue-600"></div>
 
             <CardHeader className="space-y-1 pb-6">
-              <CardTitle className="text-2xl font-bold text-center text-white">Welcome to InterviewAI</CardTitle>
+              <CardTitle className="text-2xl font-bold text-center text-white">Welcome to Prep-Pulse</CardTitle>
               <CardDescription className="text-center text-neutral-400">
                 Sign in to your account or create a new one
               </CardDescription>

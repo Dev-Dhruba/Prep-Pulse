@@ -56,8 +56,7 @@ const Profile = () => {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-      >
-        <h1 className="text-3xl font-bold tracking-tight">
+      >        <h1 className="text-3xl font-bold tracking-tight font-milker">
           <TextGenerateEffect words="Your Profile" className="text-white" />
         </h1>
 
@@ -100,8 +99,7 @@ const Profile = () => {
                         </div>
                       )}
                     </div>
-                  </div>
-                  <CardTitle className="pt-4 text-center text-xl font-bold text-white">
+                  </div>                  <CardTitle className="pt-4 text-center text-xl font-bold text-white font-milker">
                     {user.full_name || 'User'}
                   </CardTitle>
                   <CardDescription className="text-center text-neutral-400">

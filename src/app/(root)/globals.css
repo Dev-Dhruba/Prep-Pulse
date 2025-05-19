@@ -9,6 +9,13 @@
   font-style: normal;
   font-display: swap;
 }
+@font-face {
+  font-family: 'Milker';
+  src: url('/fonts/Milker.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
 
 @layer base {
   :root {
@@ -177,4 +184,27 @@
   -webkit-background-clip: text;
   color: transparent;
   background-image: linear-gradient(90deg, #3b82f6, #2563eb);
+}
+
+/* Floating animation for 3D elements */
+@keyframes floating {
+  0% {
+    transform: translateY(0px) translateX(0px);
+  }
+  25% {
+    transform: translateY(-10px) translateX(5px);
+  }
+  50% {
+    transform: translateY(0px) translateX(10px);
+  }
+  75% {
+    transform: translateY(10px) translateX(5px);
+  }
+  100% {
+    transform: translateY(0px) translateX(0px);
+  }
+}
+
+.animate-floating {
+  animation: floating 12s ease-in-out infinite;
 }
