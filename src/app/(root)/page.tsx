@@ -16,7 +16,7 @@ import { testimonials } from "@/utils/testimonials"
 const Spline = lazy(() => import("@splinetool/react-spline"))
 
 // SplineLoader component with fallback UI
-const SplineLoader = ({ scene }) => {
+const SplineLoader = ({ scene }: { scene: string }) => {
   return (
     <Suspense
       fallback={
@@ -41,56 +41,56 @@ export default function Home() {
       checkSupabaseConnection()
     }
   }, [])
-  
+
 
   return (
     <div className="flex flex-col min-h-screen bg-black text-white overflow-hidden">
       <main className="flex-1">        {/* Hero Section */}
         <section className="w-full py-16 md:py-24 lg:py-32 relative overflow-hidden" ref={heroRef}>
           <BackgroundBeams className="opacity-20" />
-          
+
           {/* Subtle animated gradient background */}
           <div className="absolute inset-0 bg-gradient-to-br from-blue-950/30 via-black to-purple-950/20 animate-gradient opacity-80"></div>
 
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">              <div className="flex flex-col space-y-6 relative">
-                {/* Decorative blobs */}
-                <div className="absolute -top-24 -left-24 w-64 h-64 rounded-full bg-blue-600/15 blur-[100px] animate-blob-slow"></div>
-                <div className="absolute -bottom-16 right-8 w-48 h-48 rounded-full bg-purple-600/20 blur-[80px] animate-blob-delay"></div>
-                <div className="absolute top-20 -right-20 w-40 h-40 rounded-full bg-cyan-500/15 blur-[60px] animate-blob"></div>
-                  <span className="px-3 py-1 text-xs font-medium bg-blue-500/10 text-blue-400 rounded-full w-fit relative z-10">
-                  AI-Powered Interview Practice
-                </span>                <div className="relative z-10">
-                  <TextGenerateEffect
-                    words="Master Your Interviews with AI Coaching"
-                    className="text-8xl md:text-5xl lg:text-6xl font-bold leading-tight font-milker relative z-10"
-                  />
-                </div>
+              {/* Decorative blobs */}
+              <div className="absolute -top-24 -left-24 w-64 h-64 rounded-full bg-blue-600/15 blur-[100px] animate-blob-slow"></div>
+              <div className="absolute -bottom-16 right-8 w-48 h-48 rounded-full bg-purple-600/20 blur-[80px] animate-blob-delay"></div>
+              <div className="absolute top-20 -right-20 w-40 h-40 rounded-full bg-cyan-500/15 blur-[60px] animate-blob"></div>
+              <span className="px-3 py-1 text-xs font-medium bg-blue-500/10 text-blue-400 rounded-full w-fit relative z-10">
+                AI-Powered Interview Practice
+              </span>                <div className="relative z-10">
+                <TextGenerateEffect
+                  words="Master Your Interviews with AI Coaching"
+                  className="text-8xl md:text-5xl lg:text-6xl font-bold leading-tight font-milker relative z-10"
+                />
+              </div>
 
-                <p className="text-lg md:text-xl text-neutral-300 max-w-xl relative z-10">
-                  Practice with our AI interviewer that adapts to your responses in real-time. Get personalized
-                  feedback, improve your skills, and land your dream job.
-                </p>
+              <p className="text-lg md:text-xl text-neutral-300 max-w-xl relative z-10">
+                Practice with our AI interviewer that adapts to your responses in real-time. Get personalized
+                feedback, improve your skills, and land your dream job.
+              </p>
 
-                <div className="flex flex-col sm:flex-row gap-4 relative z-10">
-                  <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 rounded-lg text-lg">
-                    Start Practicing Now
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
+              <div className="flex flex-col sm:flex-row gap-4 relative z-10">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 rounded-lg text-lg">
+                  Start Practicing Now
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
 
-                  <Button
-                    variant="outline"
-                    className="border-neutral-700 text-neutral-300 hover:bg-neutral-800 px-8 py-6 rounded-lg text-lg"
-                  >
-                    Watch Demo
-                  </Button>
-                </div>
-              </div>              <div className="relative h-[400px] md:h-[500px] lg:h-[600px] w-full">
+                <Button
+                  variant="outline"
+                  className="border-neutral-700 text-neutral-300 hover:bg-neutral-800 px-8 py-6 rounded-lg text-lg"
+                >
+                  Watch Demo
+                </Button>
+              </div>
+            </div>              <div className="relative h-[400px] md:h-[500px] lg:h-[600px] w-full">
                 {/* Additional decorative blobs for the right side */}
                 <div className="absolute -top-16 -right-16 w-72 h-72 rounded-full bg-blue-500/15 blur-[90px] animate-pulse" style={{ animationDuration: '15s' }}></div>
                 <div className="absolute top-1/2 -left-16 w-56 h-56 rounded-full bg-purple-500/10 blur-[80px] animate-pulse" style={{ animationDuration: '10s' }}></div>
                 <div className="absolute bottom-10 right-10 w-40 h-40 rounded-full bg-cyan-400/10 blur-[70px] animate-pulse" style={{ animationDuration: '7s' }}></div>
-                  <div className="absolute inset-0 bg-blue-500/10 rounded-2xl blur-3xl opacity-30"></div>
+                <div className="absolute inset-0 bg-blue-500/10 rounded-2xl blur-3xl opacity-30"></div>
                 <div className="absolute inset-0 flex items-center justify-center animate-floating">
                   <SplineLoader scene="https://prod.spline.design/Sl5BVKi6MUgfA6xZ/scene.splinecode" />
                 </div>
@@ -101,9 +101,9 @@ export default function Home() {
           {/* Stats Section */}
           <div className="container mx-auto px-4 md:px-6 mt-16">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-8 border-y border-neutral-800">              <div className="flex flex-col items-center text-center">
-                <h3 className="text-3xl md:text-4xl font-bold text-blue-400 font-milker">98%</h3>
-                <p className="text-neutral-400 mt-2">Improved interview confidence</p>
-              </div>
+              <h3 className="text-3xl md:text-4xl font-bold text-blue-400 font-milker">98%</h3>
+              <p className="text-neutral-400 mt-2">Improved interview confidence</p>
+            </div>
               <div className="flex flex-col items-center text-center">
                 <h3 className="text-3xl md:text-4xl font-bold text-blue-400 font-milker">200+</h3>
                 <p className="text-neutral-400 mt-2">Interview scenarios</p>
@@ -121,8 +121,8 @@ export default function Home() {
 
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">              <span className="px-3 py-1 text-xs font-medium bg-blue-500/10 text-blue-400 rounded-full">
-                Powerful Features
-              </span>
+              Powerful Features
+            </span>
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl font-milker">
                 <TextGenerateEffect words="Everything You Need to Ace Your Interviews" />
               </h2>
@@ -139,8 +139,8 @@ export default function Home() {
 
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="flex flex-col items-center justify-center space-y-4 text-center mb-16">              <span className="px-3 py-1 text-xs font-medium bg-blue-500/10 text-blue-400 rounded-full">
-                Simple Process
-              </span>
+              Simple Process
+            </span>
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl font-milker">
                 <TextGenerateEffect words="How Prep-Pulse Works" />
               </h2>
@@ -152,11 +152,11 @@ export default function Home() {
             <TracingBeam className="px-6">
               <div className="max-w-2xl mx-auto">
                 <div className="mb-12">                  <h3 className="text-2xl font-bold mb-4 flex items-center font-milker">
-                    <span className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold mr-3">
-                      1
-                    </span>
-                    <TextGenerateEffect words="Choose Your Interview" />
-                  </h3>
+                  <span className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold mr-3">
+                    1
+                  </span>
+                  <TextGenerateEffect words="Choose Your Interview" />
+                </h3>
                   <p className="text-neutral-300">
                     Select from various interview types like System Design, Behavioral, or create your own custom
                     scenario. Our platform offers specialized templates for different roles and industries.
@@ -164,11 +164,11 @@ export default function Home() {
                 </div>
 
                 <div className="mb-12">                  <h3 className="text-2xl font-bold mb-4 flex items-center font-milker">
-                    <span className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold mr-3">
-                      2
-                    </span>
-                    <TextGenerateEffect words="Practice with AI" />
-                  </h3>
+                  <span className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold mr-3">
+                    2
+                  </span>
+                  <TextGenerateEffect words="Practice with AI" />
+                </h3>
                   <p className="text-neutral-300">
                     Engage in a realistic interview with our AI interviewer that responds to your answers in real-time.
                     The AI adapts its questions based on your responses, just like a real interviewer would.
@@ -176,11 +176,11 @@ export default function Home() {
                 </div>
 
                 <div className="mb-12">                  <h3 className="text-2xl font-bold mb-4 flex items-center font-milker">
-                    <span className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold mr-3">
-                      3
-                    </span>
-                    <TextGenerateEffect words="Get Detailed Feedback" />
-                  </h3>
+                  <span className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold mr-3">
+                    3
+                  </span>
+                  <TextGenerateEffect words="Get Detailed Feedback" />
+                </h3>
                   <p className="text-neutral-300">
                     Receive comprehensive analysis and actionable insights to improve your performance. Our AI evaluates
                     your communication skills, technical accuracy, and overall presentation.
@@ -203,8 +203,8 @@ export default function Home() {
         <section className="w-full pt-8 relative">
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">              <span className="px-3 py-1 text-xs font-medium bg-blue-500/10 text-blue-400 rounded-full">
-                Success Stories
-              </span>
+              Success Stories
+            </span>
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl font-milker">
                 <TextGenerateEffect words="What Our Users Say" />
               </h2>
