@@ -73,10 +73,12 @@ export default function Home() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 relative z-10">
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 rounded-lg text-lg">
-                  Start Practicing Now
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
+                <Link href="/interview">
+                  <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 rounded-lg text-lg">
+                    Start Practicing Now
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
 
                 <Button
                   variant="outline"
